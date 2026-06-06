@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inventarios — Documentación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style/sodeker.css">
+</head>
+<body class="with-grid">
+<div class="doc-layout">
+
+<main class="doc-content">
+
+<!-- ============================== HERO ============================== -->
+<header class="section" style="border-bottom:none; padding-top: var(--space-8);">
+  <span class="badge">Módulo</span>
+  <h1 class="display" style="margin-top:var(--space-4);">
+    Documentación del módulo de <span class="accent">Inventarios</span>
+  </h1>
+  <p class="lede">Gestión centralizada de stock multibodega con control de movimientos en tiempo real, reglas de aprobación y trazabilidad por SKU.</p>
+
+  <div class="metric-grid">
+    <div class="metric"><div class="metric__value">10K+</div><div class="metric__label">SKU gestionados</div></div>
+    <div class="metric"><div class="metric__value">50/s</div><div class="metric__label">Movimientos pico</div></div>
+    <div class="metric"><div class="metric__value">99.9%</div><div class="metric__label">Disponibilidad objetivo</div></div>
+    <div class="metric"><div class="metric__value">24/7</div><div class="metric__label">Soporte</div></div>
+  </div>
+</header>
+
+<!-- ============================== 1. RESUMEN ============================== -->
+<section id="resumen-funcional" class="section">
+  <header class="section__header">
+    <span class="badge">Resumen funcional</span>
+    <h2>Qué hace el módulo de <span class="accent">Inventarios</span></h2>
+    <p class="lede">Aquí encontrarás el propósito del módulo, sus usuarios, las reglas de negocio y los flujos críticos.</p>
+  </header>
+
+  <h3>Objetivo</h3>
+  <p>El módulo de Inventarios mantiene una vista única y consistente del stock disponible en todas las bodegas de la organización. Reemplaza el conteo manual y las hojas Excel descentralizadas con un sistema en tiempo real conectado a los lectores de código de barras de cada bodega.</p>
+
+  <div class="callout">
+    <div class="callout__icon">●</div>
+    <div>
+      <p class="callout__title">Por qué construimos esto</p>
+      <p class="callout__body">Antes del módulo, cada bodega gestionaba su stock en archivos Excel locales. La conciliación tardaba 3 días por mes y arrastraba errores que afectaban la planeación de compras.</p>
+    </div>
+  </div>
+
+  <h3>Usuarios principales</h3>
+  <div class="card-grid">
+    <article class="card card--accent">
+      <h4 class="card__title">Operador de bodega</h4>
+      <p class="card__body">Registra entradas y salidas de mercancía con lector de código de barras. Trabaja desde tablet o móvil.</p>
+    </article>
+    <article class="card">
+      <h4 class="card__title">Supervisor</h4>
+      <p class="card__body">Aprueba ajustes mayores a 100 unidades y revisa el reporte diario de movimientos por bodega.</p>
+    </article>
+    <article class="card">
+      <h4 class="card__title">Analista de compras</h4>
+      <p class="card__body">Consulta niveles de stock por SKU y bodega para decidir reposiciones automáticas.</p>
+    </article>
+    <article class="card card--accent-left">
+      <h4 class="card__title">Auditor</h4>
+      <p class="card__body">Accede al historial completo de movimientos para verificar trazabilidad ante auditorías.</p>
+    </article>
+  </div>
+
+  <h3>Reglas de negocio</h3>
+  <div class="table-wrap">
+    <table class="doc-table">
+      <thead>
+        <tr><th>Regla</th><th>Cuándo aplica</th><th>Consecuencia si se rompe</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Un producto no puede tener stock negativo</td><td>En cada movimiento de salida</td><td>El sistema rechaza el movimiento y notifica al operador</td></tr>
+        <tr><td>Ajustes &gt;100 unidades requieren aprobación</td><td>Al guardar un ajuste manual</td><td>El movimiento queda en estado "Pendiente" hasta aprobación del supervisor</td></tr>
+        <tr><td>Cada movimiento debe tener un responsable identificado</td><td>Siempre</td><td>El movimiento no puede registrarse sin sesión activa</td></tr>
+        <tr><td>El cierre de bodega bloquea movimientos por 12 horas</td><td>Al ejecutar el cierre diario</td><td>Cualquier intento de movimiento durante ese período se rechaza</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Flujo principal: registrar un movimiento</h3>
+  <figure class="figure">
+    <div class="flow">
+      <div class="flow__step">
+        <div class="flow__step__num">1</div>
+        <h4 class="flow__step__title">Escanear SKU</h4>
+        <p class="flow__step__body">El operador escanea el código de barras del producto con la tablet.</p>
+      </div>
+      <div class="flow__step">
+        <div class="flow__step__num">2</div>
+        <h4 class="flow__step__title">Validar stock</h4>
+        <p class="flow__step__body">El sistema verifica disponibilidad en la bodega activa.</p>
+      </div>
+      <div class="flow__step">
+        <div class="flow__step__num">3</div>
+        <h4 class="flow__step__title">Confirmar cantidad</h4>
+        <p class="flow__step__body">El operador ingresa cantidad y motivo del movimiento.</p>
+      </div>
+      <div class="flow__step">
+        <div class="flow__step__num">4</div>
+        <h4 class="flow__step__title">Registrar y notificar</h4>
+        <p class="flow__step__body">El sistema persiste el movimiento y publica un evento para los servicios suscritos.</p>
+      </div>
+    </div>
+    <figcaption class="figure__caption">
+      <span class="figure__label">FLUJO 1</span>
+      Recorrido completo desde el escaneo del producto hasta la publicación del evento de movimiento.
+    </figcaption>
+  </figure>
+
+  <h3>Restricciones conocidas</h3>
+  <div class="callout callout--warning">
+    <div class="callout__icon">▲</div>
+    <div>
+      <p class="callout__title">Capacidad máxima por bodega</p>
+      <p class="callout__body">El sistema soporta hasta 10 000 SKU activos por bodega y 50 movimientos por segundo. Por encima de eso, observamos degradación en la latencia de validación. Si necesitas más, contactar al equipo de arquitectura.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 2. TÉCNICA ============================== -->
+<section id="documentacion-tecnica" class="section">
+  <header class="section__header">
+    <span class="badge">Documentación técnica</span>
+    <h2>Cómo está <span class="accent">construido</span></h2>
+    <p class="lede">Arquitectura, stack, decisiones técnicas y diagramas para desarrolladores que entran al proyecto.</p>
+  </header>
+
+  <h3>Arquitectura general</h3>
+  <p>Inventarios es un microservicio en Node.js que expone una API REST + eventos en RabbitMQ. La validación de stock usa Redis como cache de lectura rápida, mientras que Postgres mantiene la fuente de la verdad. La autorización delega en el servicio central de identidad.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+      <defs>
+        <marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/>
+        </marker>
+      </defs>
+      <g font-family="Inter, sans-serif" font-size="13" fill="#1F2937">
+        <rect x="20"  y="120" width="140" height="50" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text x="90"  y="150" text-anchor="middle">Tablet bodega</text>
+
+        <rect x="220" y="120" width="140" height="50" rx="12" fill="#E6F4F6" stroke="#0097A7"/>
+        <text x="290" y="150" text-anchor="middle" font-weight="600">Inventarios API</text>
+
+        <rect x="420" y="40"  width="120" height="50" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text x="480" y="70"  text-anchor="middle">Postgres</text>
+
+        <rect x="420" y="120" width="120" height="50" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text x="480" y="150" text-anchor="middle">Redis cache</text>
+
+        <rect x="420" y="200" width="120" height="50" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text x="480" y="230" text-anchor="middle">RabbitMQ</text>
+
+        <rect x="580" y="200" width="120" height="50" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text x="640" y="230" text-anchor="middle">Compras / Ventas</text>
+      </g>
+      <g stroke="#9CA3AF" stroke-width="1.5" fill="none" marker-end="url(#arr1)">
+        <path d="M160,145 L220,145"/>
+        <path d="M360,140 C390,100 400,75 420,65"/>
+        <path d="M360,145 L420,145"/>
+        <path d="M360,150 C390,190 400,215 420,225"/>
+        <path d="M540,225 L580,225"/>
+      </g>
+    </svg>
+    <figcaption class="figure__caption">
+      <span class="figure__label">DIAGRAMA 1</span>
+      Arquitectura del módulo: la API lee/escribe en Postgres, cachea consultas en Redis y publica eventos a RabbitMQ para que Compras y Ventas reaccionen.
+    </figcaption>
+  </figure>
+
+  <h3>Stack tecnológico</h3>
+  <div class="table-wrap">
+    <table class="doc-table">
+      <thead><tr><th>Capa</th><th>Tecnología</th><th>Versión</th><th>Motivo</th></tr></thead>
+      <tbody>
+        <tr><td>API</td><td>Node.js + Fastify</td><td>20.x</td><td>Throughput alto con baja sobrecarga, TypeScript nativo.</td></tr>
+        <tr><td>BD</td><td>PostgreSQL</td><td>15.x</td><td>Transacciones fuertes + JSONB para metadatos por SKU.</td></tr>
+        <tr><td>Cache</td><td>Redis</td><td>7.x</td><td>Latencia &lt;1ms al validar stock disponible.</td></tr>
+        <tr><td>Eventos</td><td>RabbitMQ</td><td>3.12</td><td>Routing por tópico para distribuir movimientos a múltiples consumidores.</td></tr>
+        <tr><td>Observabilidad</td><td>OpenTelemetry + Grafana</td><td>—</td><td>Trazas distribuidas para diagnosticar latencias entre servicios.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Decisión técnica: por qué Redis para validación de stock</h3>
+  <div class="callout">
+    <div class="callout__icon">●</div>
+    <div>
+      <p class="callout__title">ADR-007 · Cache de stock en Redis</p>
+      <p class="callout__body"><strong>Contexto:</strong> validar disponibilidad de stock en cada movimiento tocando Postgres directamente generaba latencias de 80–120ms en hora pico. <strong>Decisión:</strong> mantener el stock disponible en Redis con TTL de 5s y revalidar en escritura. <strong>Consecuencia:</strong> latencia de validación bajó a 3–8ms, a cambio de una ventana de 5s donde una lectura puede estar desactualizada.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 3. INSTALACIÓN ============================== -->
+<section id="instalacion" class="section">
+  <header class="section__header">
+    <span class="badge">Instalación</span>
+    <h2>Cómo correrlo <span class="accent">localmente</span></h2>
+    <p class="lede">Requisitos, variables, comandos y problemas comunes para levantar el módulo desde cero.</p>
+  </header>
+
+  <h3>Requisitos previos</h3>
+  <div class="table-wrap">
+    <table class="doc-table">
+      <thead><tr><th>Herramienta</th><th>Versión mínima</th><th>Verificar</th></tr></thead>
+      <tbody>
+        <tr><td>Node.js</td><td>20.x</td><td><code>node --version</code></td></tr>
+        <tr><td>npm</td><td>10.x</td><td><code>npm --version</code></td></tr>
+        <tr><td>Postgres</td><td>15.x</td><td><code>psql --version</code></td></tr>
+        <tr><td>Redis</td><td>7.x</td><td><code>redis-cli --version</code></td></tr>
+        <tr><td>Docker (opcional)</td><td>24.x</td><td><code>docker --version</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Variables de entorno</h3>
+  <div class="table-wrap">
+    <table class="doc-table">
+      <thead><tr><th>Variable</th><th>Requerida</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>DATABASE_URL</code></td><td>Sí</td><td>URL Postgres</td><td><code>postgres://user:pass@localhost:5432/inventario</code></td></tr>
+        <tr><td><code>REDIS_URL</code></td><td>Sí</td><td>URL del cache</td><td><code>redis://localhost:6379</code></td></tr>
+        <tr><td><code>RABBITMQ_URL</code></td><td>Sí</td><td>URL del broker de eventos</td><td><code>amqp://localhost:5672</code></td></tr>
+        <tr><td><code>LOG_LEVEL</code></td><td>No</td><td>Nivel de log</td><td><code>info</code></td></tr>
+        <tr><td><code>JWT_SECRET</code></td><td>Sí</td><td>Secreto para validar tokens</td><td><code>&lt;cambiar-en-prod&gt;</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Pasos de instalación</h3>
+<pre><code># 1. Clonar el repositorio
+git clone https://github.com/sodeker/inventarios.git
+cd inventarios
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Copiar variables y editarlas
+cp .env.example .env
+
+# 4. Correr migraciones
+npm run db:migrate
+
+# 5. Sembrar datos de prueba
+npm run db:seed
+
+# 6. Levantar el servicio
+npm run dev</code></pre>
+
+  <div class="callout callout--success">
+    <div class="callout__icon">✓</div>
+    <div>
+      <p class="callout__title">Verifica que arrancó</p>
+      <p class="callout__body">Abre <code>http://localhost:3000/health</code> en el navegador. Debes ver <code>{"status":"ok","version":"1.x.x"}</code>.</p>
+    </div>
+  </div>
+
+  <h3>Problemas comunes</h3>
+  <div class="table-wrap">
+    <table class="doc-table">
+      <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Solución</th></tr></thead>
+      <tbody>
+        <tr><td><code>EADDRINUSE :3000</code></td><td>El puerto 3000 está ocupado</td><td><code>lsof -ti:3000 | xargs kill</code></td></tr>
+        <tr><td><code>ECONNREFUSED 5432</code></td><td>Postgres no está corriendo</td><td><code>brew services start postgresql</code></td></tr>
+        <tr><td><code>Cannot find module</code></td><td>Faltó instalar tras cambiar de branch</td><td><code>rm -rf node_modules && npm install</code></td></tr>
+        <tr><td>Login devuelve 401 siempre</td><td><code>JWT_SECRET</code> distinto al del servicio de auth</td><td>Copia el secret correcto del vault de equipo</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================== 4. SOPORTE ============================== -->
+<section id="soporte" class="section">
+  <header class="section__header">
+    <span class="badge">Soporte</span>
+    <h2>Guía para el equipo de <span class="accent">soporte</span></h2>
+    <p class="lede">Errores comunes, qué revisar, a quién contactar y cómo actuar ante incidentes. Lenguaje accesible.</p>
+  </header>
+
+  <div class="callout">
+    <div class="callout__icon">●</div>
+    <div>
+      <p class="callout__title">Esta sección es para soporte funcional</p>
+      <p class="callout__body">Está escrita asumiendo que no necesariamente conoces el código. Cada término técnico se traduce. Si algo no queda claro, escala al lead técnico.</p>
+    </div>
+  </div>
+
+  <h3>Estado normal del sistema</h3>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric__value">&lt;300ms</div><div class="metric__label">Latencia normal de respuesta</div></div>
+    <div class="metric"><div class="metric__value">&lt;100</div><div class="metric__label">Items en cola pendiente</div></div>
+    <div class="metric"><div class="metric__value">&lt;1%</div><div class="metric__label">Tasa de error aceptable</div></div>
+    <div class="metric"><div class="metric__value">&gt;99%</div><div class="metric__label">Disponibilidad mensual</div></div>
+  </div>
+
+  <h3>Errores que verás con más frecuencia</h3>
+  <div class="table-wrap">
+    <table class="doc-table">
+      <thead><tr><th>Mensaje</th><th>Qué significa</th><th>Qué hacer</th><th>Escalar si</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>Stock insuficiente</code></td>
+          <td>El producto no tiene unidades disponibles para esa operación</td>
+          <td>Verificar el inventario físico con el supervisor de la bodega</td>
+          <td>El sistema marca disponibilidad pero el error persiste</td>
+        </tr>
+        <tr>
+          <td><code>Movimiento duplicado</code></td>
+          <td>Ya se registró un movimiento idéntico en los últimos 10 segundos</td>
+          <td>Esperar 30 segundos y reintentar la operación</td>
+          <td>Sigue después de 2 minutos</td>
+        </tr>
+        <tr>
+          <td><code>Error interno del servidor (500)</code></td>
+          <td>Algo falló en el sistema, no en lo que hizo el usuario</td>
+          <td>Tomar captura, anotar la hora, abrir ticket a desarrollo</td>
+          <td>Siempre — requiere desarrollo</td>
+        </tr>
+        <tr>
+          <td><code>Sesión expirada</code></td>
+          <td>Pasaron más de 8 horas desde el último login del usuario</td>
+          <td>Pedir al usuario que vuelva a iniciar sesión</td>
+          <td>El error aparece justo después de login</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Procedimiento ante un incidente</h3>
+  <figure class="figure">
+    <div class="flow">
+      <div class="flow__step">
+        <div class="flow__step__num">1</div>
+        <h4 class="flow__step__title">Recibir el reporte</h4>
+        <p class="flow__step__body">El usuario reporta por Slack, correo o teléfono.</p>
+      </div>
+      <div class="flow__step">
+        <div class="flow__step__num">2</div>
+        <h4 class="flow__step__title">Clasificar severidad</h4>
+        <p class="flow__step__body">¿Afecta a usuarios ahora? Si sí: P1. Si no: P2 o P3.</p>
+      </div>
+      <div class="flow__step">
+        <div class="flow__step__num">3</div>
+        <h4 class="flow__step__title">Activar al on-call</h4>
+        <p class="flow__step__body">Si es P1, contactar al on-call por PagerDuty.</p>
+      </div>
+      <div class="flow__step">
+        <div class="flow__step__num">4</div>
+        <h4 class="flow__step__title">Comunicar avances</h4>
+        <p class="flow__step__body">Publicar update en <code>#incidentes</code> cada 15 minutos.</p>
+      </div>
+    </div>
+    <figcaption class="figure__caption">
+      <span class="figure__label">FLUJO 2</span>
+      Procedimiento estándar desde la recepción del reporte hasta la comunicación durante un incidente.
+    </figcaption>
+  </figure>
+
+  <h3>A quién contactar</h3>
+  <div class="table-wrap">
+    <table class="doc-table">
+      <thead><tr><th>Rol</th><th>Persona / equipo</th><th>Canal</th><th>Cuándo</th></tr></thead>
+      <tbody>
+        <tr><td>On-call</td><td>Rotación semanal</td><td>PagerDuty</td><td>Incidente P1 o P2</td></tr>
+        <tr><td>Lead técnico</td><td>María Pérez</td><td>Slack <code>@maria</code></td><td>Decisiones de arquitectura urgentes</td></tr>
+        <tr><td>Product owner</td><td>Juan Gómez</td><td>Slack <code>@juan</code></td><td>Dudas funcionales o de prioridad</td></tr>
+        <tr><td>Proveedor de pagos</td><td>Soporte Wompi</td><td>+57 1 555 1234</td><td>Errores en el flujo de cobro</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================== 5. USUARIO ============================== -->
+<section id="manual-usuario" class="section">
+  <header class="section__header">
+    <span class="badge">Manual de usuario</span>
+    <h2>Cómo usar el <span class="accent">sistema</span></h2>
+    <p class="lede">Guía paso a paso para operadores, supervisores y analistas. Pensada para personas no técnicas.</p>
+  </header>
+
+  <h3>Iniciar sesión</h3>
+  <ol>
+    <li>Abre <code>https://inventarios.sodeker.co</code> en tu navegador.</li>
+    <li>Ingresa tu correo corporativo y la contraseña que te envió el administrador.</li>
+    <li>Si olvidaste tu contraseña, haz clic en <strong>"Recuperar contraseña"</strong> y sigue los pasos del correo.</li>
+  </ol>
+
+  <h3>Registrar un movimiento de salida</h3>
+  <div class="flow">
+    <div class="flow__step">
+      <div class="flow__step__num">1</div>
+      <h4 class="flow__step__title">Ir a Movimientos</h4>
+      <p class="flow__step__body">En el menú lateral selecciona <strong>Movimientos → Nuevo</strong>.</p>
+    </div>
+    <div class="flow__step">
+      <div class="flow__step__num">2</div>
+      <h4 class="flow__step__title">Escanear o buscar el producto</h4>
+      <p class="flow__step__body">Usa el lector de código de barras o escribe el nombre del producto.</p>
+    </div>
+    <div class="flow__step">
+      <div class="flow__step__num">3</div>
+      <h4 class="flow__step__title">Ingresar cantidad</h4>
+      <p class="flow__step__body">Escribe cuántas unidades se están moviendo y selecciona el motivo del movimiento.</p>
+    </div>
+    <div class="flow__step">
+      <div class="flow__step__num">4</div>
+      <h4 class="flow__step__title">Confirmar</h4>
+      <p class="flow__step__body">Haz clic en <strong>Guardar</strong>. Verás un mensaje verde de confirmación.</p>
+    </div>
+  </div>
+
+  <h3>Glosario</h3>
+  <div class="card-grid">
+    <article class="card">
+      <h4 class="card__title">SKU</h4>
+      <p class="card__body">Código único que identifica cada producto. Ejemplo: <code>SKU-00123</code>.</p>
+    </article>
+    <article class="card">
+      <h4 class="card__title">Movimiento</h4>
+      <p class="card__body">Cualquier entrada o salida de mercancía en una bodega.</p>
+    </article>
+    <article class="card">
+      <h4 class="card__title">Bodega</h4>
+      <p class="card__body">Ubicación física donde se almacena la mercancía. El sistema soporta múltiples bodegas.</p>
+    </article>
+    <article class="card">
+      <h4 class="card__title">Ajuste</h4>
+      <p class="card__body">Movimiento usado para corregir diferencias entre el inventario físico y el del sistema.</p>
+    </article>
+  </div>
+</section>
+
+<hr class="divider">
+<p><small>Documentación generada con Sódeker Docs Skill · Identidad turquesa · Mecánica interactiva inspirada en Distill.</small></p>
+
+</main>
+
+<!-- ============================== NAVEGACIÓN DERECHA ============================== -->
+<nav class="doc-nav" aria-label="Navegación">
+  <p class="doc-nav__label">Contenido</p>
+  <ul class="doc-nav__list">
+    <li><a href="#resumen-funcional">Resumen funcional</a></li>
+    <li><a href="#documentacion-tecnica">Documentación técnica</a></li>
+    <li><a href="#instalacion">Instalación</a></li>
+    <li><a href="#soporte">Soporte</a></li>
+    <li><a href="#manual-usuario">Manual de usuario</a></li>
+  </ul>
+</nav>
+</div>
+
+<script>
+  (function () {
+    const links = document.querySelectorAll('.doc-nav__list a[href^="#"]');
+    const targets = Array.from(links)
+      .map(a => document.querySelector(a.getAttribute('href')))
+      .filter(Boolean);
+    if (!targets.length) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = '#' + e.target.id;
+          links.forEach(l => l.classList.toggle('is-active', l.getAttribute('href') === id));
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    targets.forEach(t => obs.observe(t));
+  })();
+</script>
+</body>
+</html>

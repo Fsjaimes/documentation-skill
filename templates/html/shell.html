@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITULO_DOC}} — Documentación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./sodeker.css">
+</head>
+<body class="with-grid">
+  <div class="doc-layout">
+
+    <!-- =================== CONTENIDO (IZQUIERDA) =================== -->
+    <main class="doc-content">
+
+      <!-- HERO -->
+      <header class="section" style="border-bottom: none; padding-top: var(--space-8);">
+        <span class="badge">{{TIPO_DOC}}</span>
+        <h1 class="display" style="margin-top: var(--space-4);">
+          {{TITULO_PARTE_NEGRA}} <span class="accent">{{TITULO_PARTE_TURQUESA}}</span>
+        </h1>
+        <p class="lede">{{LEDE}}</p>
+
+        <!-- Métricas representativas (opcional) -->
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="metric__value">{{METRICA_1_VALOR}}</div>
+            <div class="metric__label">{{METRICA_1_LABEL}}</div>
+          </div>
+          <div class="metric">
+            <div class="metric__value">{{METRICA_2_VALOR}}</div>
+            <div class="metric__label">{{METRICA_2_LABEL}}</div>
+          </div>
+          <div class="metric">
+            <div class="metric__value">{{METRICA_3_VALOR}}</div>
+            <div class="metric__label">{{METRICA_3_LABEL}}</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- SECCIÓN 1 -->
+      <section id="resumen-funcional" class="section">
+        <header class="section__header">
+          <span class="badge">Resumen funcional</span>
+          <h2>Qué hace el módulo de <span class="accent">{{NOMBRE_MODULO}}</span></h2>
+          <p class="lede">{{SUBTITULO_SECCION}}</p>
+        </header>
+
+        <!-- Bloques: cards, tablas, callouts, flow, figures -->
+        <!-- (Ver templates/html/components.html para snippets) -->
+
+      </section>
+
+      <!-- SECCIÓN 2 -->
+      <section id="documentacion-tecnica" class="section">
+        <header class="section__header">
+          <span class="badge">Documentación técnica</span>
+          <h2>Cómo está <span class="accent">construido</span></h2>
+          <p class="lede">{{SUBTITULO_SECCION}}</p>
+        </header>
+      </section>
+
+      <!-- SECCIÓN 3 -->
+      <section id="instalacion" class="section">
+        <header class="section__header">
+          <span class="badge">Instalación</span>
+          <h2>Cómo correrlo <span class="accent">localmente</span></h2>
+          <p class="lede">{{SUBTITULO_SECCION}}</p>
+        </header>
+      </section>
+
+      <!-- SECCIÓN 4 -->
+      <section id="soporte" class="section">
+        <header class="section__header">
+          <span class="badge">Soporte</span>
+          <h2>Guía para el equipo de <span class="accent">soporte</span></h2>
+          <p class="lede">{{SUBTITULO_SECCION}}</p>
+        </header>
+      </section>
+
+      <!-- SECCIÓN 5 (opcional) -->
+      <section id="manual-usuario" class="section">
+        <header class="section__header">
+          <span class="badge">Manual de usuario</span>
+          <h2>Cómo usar el <span class="accent">sistema</span></h2>
+          <p class="lede">{{SUBTITULO_SECCION}}</p>
+        </header>
+      </section>
+
+    </main>
+
+    <!-- =================== NAVEGACIÓN (DERECHA) =================== -->
+    <nav class="doc-nav" aria-label="Navegación de la documentación">
+      <p class="doc-nav__label">Contenido</p>
+      <ul class="doc-nav__list">
+        <li><a href="#resumen-funcional">Resumen funcional</a></li>
+        <li><a href="#documentacion-tecnica">Documentación técnica</a></li>
+        <li><a href="#instalacion">Instalación</a></li>
+        <li><a href="#soporte">Soporte</a></li>
+        <li><a href="#manual-usuario">Manual de usuario</a></li>
+      </ul>
+    </nav>
+
+  </div>
+
+  <script>
+    // Resalta la sección activa en el sidebar derecho al hacer scroll
+    (function () {
+      const links = document.querySelectorAll('.doc-nav__list a[href^="#"]');
+      const targets = Array.from(links)
+        .map(a => document.querySelector(a.getAttribute('href')))
+        .filter(Boolean);
+
+      if (!targets.length) return;
+
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            const id = '#' + e.target.id;
+            links.forEach(l => l.classList.toggle('is-active', l.getAttribute('href') === id));
+          }
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+
+      targets.forEach(t => obs.observe(t));
+    })();
+  </script>
+</body>
+</html>

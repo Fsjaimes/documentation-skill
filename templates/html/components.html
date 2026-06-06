@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Componentes — Sódeker Docs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../style/sodeker.css">
+</head>
+<body class="with-grid">
+<div class="doc-layout">
+<main class="doc-content">
+
+<!-- ================= REFERENCIA DE COMPONENTES =================
+     Esta página NO es output final.
+     Es el catálogo de snippets HTML que la skill usa para componer
+     documentación. Cada bloque está listo para copiar.
+============================================================== -->
+
+<header class="section" style="border-bottom:none;">
+  <span class="badge">Catálogo</span>
+  <h1 class="display">Componentes <span class="accent">Sódeker Docs</span></h1>
+  <p class="lede">Snippets de referencia para componer documentación. Copia el bloque, reemplaza el contenido, conserva las clases.</p>
+</header>
+
+<!-- ============================================================
+     1. Badge
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 01</span>
+  <h2>Badge <span class="accent">turquesa</span></h2>
+  <p>Uso: clasificar contenido al inicio de cada sección o card.</p>
+
+  <p>
+    <span class="badge">Módulo</span>
+    <span class="badge">Requerimiento</span>
+    <span class="badge badge--neutral">Pendiente</span>
+    <span class="badge badge--success">Finalizado</span>
+    <span class="badge badge--warning">En revisión</span>
+  </p>
+
+<pre><code>&lt;span class="badge"&gt;Módulo&lt;/span&gt;
+&lt;span class="badge badge--neutral"&gt;Pendiente&lt;/span&gt;
+&lt;span class="badge badge--success"&gt;Finalizado&lt;/span&gt;
+&lt;span class="badge badge--warning"&gt;En revisión&lt;/span&gt;</code></pre>
+</section>
+
+<!-- ============================================================
+     2. Card grid
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 02</span>
+  <h2>Card <span class="accent">grid</span></h2>
+  <p>Uso: presentar funcionalidades, usuarios, patrones, integraciones.</p>
+
+  <div class="card-grid">
+    <article class="card card--accent">
+      <h3 class="card__title">Operador de bodega</h3>
+      <p class="card__body">Registra entradas y salidas de mercancía en tiempo real desde lectores de código de barras.</p>
+    </article>
+    <article class="card">
+      <h3 class="card__title">Supervisor</h3>
+      <p class="card__body">Aprueba ajustes de inventario y revisa reportes diarios de movimientos.</p>
+    </article>
+    <article class="card card--accent-left">
+      <h3 class="card__title">Analista de compras</h3>
+      <p class="card__body">Consulta niveles de stock para decidir reposiciones.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================
+     3. Métricas
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 03</span>
+  <h2>Métricas e <span class="accent">indicadores</span></h2>
+  <p>Uso: cifras representativas del módulo, KPIs o capacidad.</p>
+
+  <div class="metric-grid">
+    <div class="metric"><div class="metric__value">50+</div><div class="metric__label">Procesos automatizados</div></div>
+    <div class="metric"><div class="metric__value">10+</div><div class="metric__label">Años de experiencia</div></div>
+    <div class="metric"><div class="metric__value">24/7</div><div class="metric__label">Soporte técnico</div></div>
+    <div class="metric"><div class="metric__value">99.9%</div><div class="metric__label">Disponibilidad</div></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     4. Tabla
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 04</span>
+  <h2>Tabla <span class="accent">limpia</span></h2>
+  <p>Uso: reglas de negocio, configuraciones, variables de entorno.</p>
+
+  <div class="table-wrap">
+    <table class="doc-table">
+      <thead>
+        <tr>
+          <th>Variable</th>
+          <th>Requerida</th>
+          <th>Descripción</th>
+          <th>Ejemplo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>DATABASE_URL</code></td>
+          <td>Sí</td>
+          <td>URL de conexión a Postgres</td>
+          <td><code>postgres://user:pass@host:5432/db</code></td>
+        </tr>
+        <tr>
+          <td><code>REDIS_URL</code></td>
+          <td>Sí</td>
+          <td>URL del servidor de cache</td>
+          <td><code>redis://localhost:6379</code></td>
+        </tr>
+        <tr>
+          <td><code>LOG_LEVEL</code></td>
+          <td>No</td>
+          <td>Nivel de detalle de los logs</td>
+          <td><code>info</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================
+     5. Callout (info / warning / success)
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 05</span>
+  <h2>Callout <span class="accent">destacado</span></h2>
+  <p>Uso: notas, advertencias o decisiones técnicas que requieren atención.</p>
+
+  <div class="callout">
+    <div class="callout__icon">●</div>
+    <div>
+      <p class="callout__title">Por qué construimos esto</p>
+      <p class="callout__body">Antes de este módulo, el conteo de inventario se hacía en hojas de Excel que no se sincronizaban entre bodegas.</p>
+    </div>
+  </div>
+
+  <div class="callout callout--warning">
+    <div class="callout__icon">▲</div>
+    <div>
+      <p class="callout__title">Cuidado al reiniciar el servicio en hora pico</p>
+      <p class="callout__body">Los movimientos en curso se pierden si la cola no se drena antes de bajar el contenedor.</p>
+    </div>
+  </div>
+
+  <div class="callout callout--success">
+    <div class="callout__icon">✓</div>
+    <div>
+      <p class="callout__title">Migración completada</p>
+      <p class="callout__body">Todos los registros antiguos quedaron migrados al esquema v2 sin pérdida de datos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     6. Figure con diagrama SVG
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 06</span>
+  <h2>Figure con <span class="accent">diagrama</span></h2>
+  <p>Uso: arquitectura, flujos, integraciones. Bordes hairline al estilo Distill.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+      <!-- Cajas -->
+      <g font-family="Inter, sans-serif" font-size="13" fill="#1F2937">
+        <rect x="20"  y="80" width="140" height="60" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text x="90" y="115" text-anchor="middle">Cliente web</text>
+
+        <rect x="230" y="80" width="140" height="60" rx="12" fill="#E6F4F6" stroke="#C8E9EC"/>
+        <text x="300" y="115" text-anchor="middle">API gateway</text>
+
+        <rect x="440" y="20"  width="140" height="60" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text x="510" y="55" text-anchor="middle">Servicio órdenes</text>
+
+        <rect x="440" y="140" width="140" height="60" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text x="510" y="175" text-anchor="middle">Servicio stock</text>
+      </g>
+
+      <!-- Flechas -->
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/>
+        </marker>
+      </defs>
+      <g stroke="#9CA3AF" stroke-width="1.5" fill="none" marker-end="url(#arrow)">
+        <path d="M160,110 C190,110 200,110 230,110"/>
+        <path d="M370,100 C400,80 410,55 440,50"/>
+        <path d="M370,120 C400,140 410,165 440,170"/>
+      </g>
+    </svg>
+    <figcaption class="figure__caption">
+      <span class="figure__label">DIAGRAMA 1</span>
+      El cliente web envía peticiones al API gateway, que distribuye entre los servicios de órdenes y stock.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================
+     7. Flow de pasos
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 07</span>
+  <h2>Flujo <span class="accent">numerado</span></h2>
+  <p>Uso: procesos paso a paso (instalación, incidentes, checkout).</p>
+
+  <div class="flow">
+    <div class="flow__step">
+      <div class="flow__step__num">1</div>
+      <h3 class="flow__step__title">Recibir el ticket</h3>
+      <p class="flow__step__body">El usuario reporta el incidente por Slack o correo.</p>
+    </div>
+    <div class="flow__step">
+      <div class="flow__step__num">2</div>
+      <h3 class="flow__step__title">Clasificar severidad</h3>
+      <p class="flow__step__body">Determinar si es P1, P2 o P3 según el impacto.</p>
+    </div>
+    <div class="flow__step">
+      <div class="flow__step__num">3</div>
+      <h3 class="flow__step__title">Activar al on-call</h3>
+      <p class="flow__step__body">Si es P1 o P2, contactar al on-call por PagerDuty.</p>
+    </div>
+    <div class="flow__step">
+      <div class="flow__step__num">4</div>
+      <h3 class="flow__step__title">Comunicar a stakeholders</h3>
+      <p class="flow__step__body">Publicar update en el canal de incidentes cada 15 min.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     8. Slider Distill + badge mano
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 08</span>
+  <h2>Slider <span class="accent">interactivo</span></h2>
+  <p>Uso: cuando una doc HTML necesita un control parametrizable (estimar carga, ajustar config).</p>
+
+  <p style="display:flex;align-items:center;gap:var(--space-3);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Mueve el slider para simular la carga concurrente.
+  </p>
+
+  <input type="range" min="1" max="100" value="20" class="slider">
+  <p><small>Carga simulada: <strong style="color:var(--accent);">20 req/s</strong></small></p>
+</section>
+
+<!-- ============================================================
+     9. Botones
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 09</span>
+  <h2>Botones <span class="accent">primario y secundario</span></h2>
+  <p>Uso: llamados a la acción dentro de la doc (descargar OpenAPI, copiar config, ir al repo).</p>
+
+  <button class="btn btn--primary">Ver el repositorio</button>
+  &nbsp;
+  <button class="btn btn--secondary">Descargar OpenAPI</button>
+</section>
+
+</main>
+
+<nav class="doc-nav">
+  <p class="doc-nav__label">Catálogo</p>
+  <ul class="doc-nav__list">
+    <li><a href="#">Badge</a></li>
+    <li><a href="#">Card grid</a></li>
+    <li><a href="#">Métricas</a></li>
+    <li><a href="#">Tabla</a></li>
+    <li><a href="#">Callout</a></li>
+    <li><a href="#">Figure</a></li>
+    <li><a href="#">Flow</a></li>
+    <li><a href="#">Slider</a></li>
+    <li><a href="#">Botones</a></li>
+  </ul>
+</nav>
+</div>
+</body>
+</html>
