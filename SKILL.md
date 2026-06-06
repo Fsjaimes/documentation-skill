@@ -89,7 +89,9 @@ Hacer preguntas focalizadas (máximo 5–6) antes de generar nada:
 - **Usa analogías** para explicar conceptos complejos. El lector objetivo aprende mejor con gráficos y ejemplos.
 - Mantén vocabulario técnico, pero **explícalo siempre**. No asumas que el lector es el desarrollador original.
 - La sección de Soporte se escribe en **lenguaje accesible para no desarrolladores** (analista de soporte, QA, mesa de ayuda). Sin jerga sin contexto.
-- Cada flujo importante se acompaña de un diagrama (no solo descripción en texto).
+- **Diagrama por cada concepto, flujo o transformación**. Si algo se puede expresar como "X → Y → Z", debe tener un SVG al lado. No basta con describirlo en texto. Ej: comando → job → job → importer.
+- **Consistencia en card-grids**: dentro de un mismo `.card-grid`, todas las cards usan la misma variante (`card`, `card--accent` o `card--accent-left`). No mezclar dentro del mismo grupo conceptual.
+- **Métricas solo con datos reales**: `metric-grid` solo cuando represente cifras verificables (capacidad, latencia, volumen, KPIs). Nunca como decoración tipo dashboard en guías conceptuales.
 - Sentence case en titulares, etiquetas y botones (no Title Case ni MAYÚSCULAS).
 
 ### Elementos interactivos (Distill)
