@@ -67,8 +67,23 @@ Hacer preguntas focalizadas (máximo 5–6) antes de generar nada:
 - `examples/` — output de referencia para calibrar estilo.
 
 ### 4. Generar la documentación
-- **HTML**: un único `index.html` con todas las secciones + `sodeker.css` copiado al lado. El layout DEBE usar `.doc-layout` con contenido a la izquierda y `<nav class="doc-nav">` a la derecha (sticky, scroll independiente).
-- **Markdown**: un archivo `.md` por sección dentro de una carpeta `docs/`, más un `README.md` que actúa como índice.
+
+**Ubicación por defecto (HTML)**:
+- Carpeta destino: `documentation/` en la raíz del proyecto. Si no existe, créala. Si ya existe, **reutilízala** (no crear `documentation-2/`, `documentation-new/`, etc.).
+- Archivo HTML: `documentation/documentation-<slug-del-modulo>.html` (slug en kebab-case, ej. `documentation-inventarios.html`, `documentation-facturacion.html`).
+- Hoja de estilos: `documentation/sodeker.css` — **una sola copia compartida** por todos los HTML de la carpeta.
+
+**Regla de reutilización del CSS** (evita duplicar el archivo de estilos):
+1. Antes de copiar `sodeker.css`, verifica si ya existe en `documentation/sodeker.css`.
+2. Si existe, **no lo sobreescribas** ni lo copies de nuevo. El nuevo HTML simplemente lo referencia con `<link rel="stylesheet" href="./sodeker.css">`.
+3. Si no existe, cópialo una sola vez desde la skill.
+4. Nunca generar el CSS al lado del HTML cuando ya vive en la misma carpeta `documentation/`.
+
+**Override del usuario**: si el usuario pidió explícitamente una ruta distinta (ej. "déjalo en `docs/inventarios/`", "ponlo en el escritorio"), respeta esa ruta y aplica la misma regla de reutilización del CSS en ese directorio.
+
+**Layout HTML**: usar `.doc-layout` con contenido a la izquierda y `<nav class="doc-nav">` a la derecha (sticky, scroll independiente).
+
+**Markdown**: un archivo `.md` por sección dentro de una carpeta `docs/`, más un `README.md` que actúa como índice. (Markdown no genera CSS, así que no aplica la regla de reutilización.)
 
 ### 5. Verificar visualmente
 - HTML: abrir el archivo en el navegador con la herramienta apropiada. Confirmar que el sidebar está a la derecha, los colores son turquesa/blanco/gris (nunca crema o coral), y no hay muros de texto.
