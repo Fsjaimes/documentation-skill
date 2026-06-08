@@ -551,3 +551,115 @@ pre code { background: transparent; padding: 0; color: inherit; font-size: inher
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- 22. Theme toggle (luna / sol) ---------- */
+.theme-toggle {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 100;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  border: 1px solid var(--ink-100);
+  color: var(--ink-700);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+.theme-toggle:hover {
+  border-color: var(--accent-200);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.theme-toggle svg { width: 18px; height: 18px; display: block; }
+.theme-toggle .icon-sun  { display: none; }
+.theme-toggle .icon-moon { display: block; }
+
+/* ---------- 23. Dark theme ---------- */
+[data-theme="dark"] {
+  --paper:        #0B1116;
+  --paper-soft:   #121A21;
+  --paper-tint:   #18222B;
+
+  --ink-900:      #F4F6F8;
+  --ink-800:      #E5E9ED;
+  --ink-700:      #D1D5DB;
+  --ink-600:      #B7BDC4;
+  --ink-500:      #A0A7AE;
+  --ink-400:      #8A9097;
+  --ink-300:      #6B7280;
+  --ink-200:      #4B5563;
+  --ink-100:      #2A333D;
+  --ink-050:      #1B232C;
+
+  --accent-50:    rgba(0, 151, 167, 0.14);
+  --accent-100:   rgba(0, 151, 167, 0.28);
+  --accent-200:   #4AB7C0;
+  --accent-300:   #8FD2D8;
+  --accent-500:   #4AB7C0;
+  --accent-600:   #8FD2D8;
+  --accent-700:   #C8E9EC;
+  --accent:       var(--accent-500);
+
+  --success-50:   rgba(4, 120, 87, 0.18);
+  --success-600:  #6EE7B7;
+  --success-200:  rgba(4, 120, 87, 0.45);
+  --warning-50:   rgba(180, 83, 9, 0.18);
+  --warning-600:  #FCD34D;
+  --warning-200:  rgba(180, 83, 9, 0.45);
+
+  --border:       1px solid var(--ink-100);
+  --border-hair:  1px solid rgba(255, 255, 255, 0.08);
+  --shadow-xs:    0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-sm:    0 2px 6px rgba(0, 0, 0, 0.50);
+  --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="dark"] .theme-toggle .icon-sun  { display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+[data-theme="dark"] body.with-grid {
+  background-image:
+    linear-gradient(rgba(0, 151, 167, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 151, 167, 0.05) 1px, transparent 1px);
+}
+
+/* Code block: ya era oscuro, lo ajustamos un poco al fondo dark */
+[data-theme="dark"] pre {
+  background: #060A0F;
+  border: 1px solid var(--ink-100);
+}
+[data-theme="dark"] code:not(pre code) {
+  background: var(--ink-050);
+  color: var(--ink-700);
+}
+
+/* Botón primario: texto oscuro sobre teal claro */
+[data-theme="dark"] .btn--primary { color: var(--paper); }
+[data-theme="dark"] .btn--primary:hover { background: var(--accent-600); color: var(--paper); }
+
+/* SVG figures con presentation attributes: invertir cajas blancas y bordes claros */
+[data-theme="dark"] .figure svg rect[fill="#FFFFFF"] { fill: var(--paper-soft); }
+[data-theme="dark"] .figure svg rect[fill="#E6F4F6"] { fill: rgba(0, 151, 167, 0.18); }
+[data-theme="dark"] .figure svg rect[stroke="#E5E7EB"] { stroke: var(--ink-100); }
+[data-theme="dark"] .figure svg rect[stroke="#C8E9EC"] { stroke: var(--accent-200); }
+[data-theme="dark"] .figure svg rect[stroke="#0097A7"] { stroke: var(--accent-500); }
+[data-theme="dark"] .figure svg text { fill: var(--ink-700); }
+[data-theme="dark"] .figure svg g[stroke="#9CA3AF"] { stroke: var(--ink-300); }
+[data-theme="dark"] .figure svg path[fill="#9CA3AF"] { fill: var(--ink-300); }
+
+@media print {
+  .theme-toggle { display: none; }
+}

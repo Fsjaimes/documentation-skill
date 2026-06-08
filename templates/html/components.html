@@ -265,6 +265,71 @@
   <button class="btn btn--secondary">Descargar OpenAPI</button>
 </section>
 
+<!-- ============================================================
+     10. Theme toggle (luna / sol)
+============================================================ -->
+<section class="section">
+  <span class="badge">Sección · 10</span>
+  <h2>Cambio de <span class="accent">tema</span></h2>
+  <p>Uso: botón fijo en la esquina superior derecha de cada documento. Alterna entre tema claro y oscuro y guarda la preferencia del lector en <code>localStorage</code>.</p>
+
+  <p>Para que funcione hacen falta tres piezas:</p>
+
+  <h4>1. Inicialización temprana (antes del render) en <code>&lt;head&gt;</code></h4>
+<pre><code>&lt;script&gt;
+  (function () {
+    try {
+      var stored = localStorage.getItem('sodeker-docs-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = stored || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {}
+  })();
+&lt;/script&gt;</code></pre>
+
+  <h4>2. Botón al inicio del <code>&lt;body&gt;</code></h4>
+<pre><code>&lt;button class="theme-toggle" type="button"
+        aria-label="Cambiar tema (claro / oscuro)"
+        title="Cambiar tema"&gt;
+  &lt;svg class="icon-moon" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"&gt;
+    &lt;path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/&gt;
+  &lt;/svg&gt;
+  &lt;svg class="icon-sun" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"&gt;
+    &lt;circle cx="12" cy="12" r="4"/&gt;
+    &lt;path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41
+             M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/&gt;
+  &lt;/svg&gt;
+&lt;/button&gt;</code></pre>
+
+  <h4>3. Handler al final del <code>&lt;body&gt;</code></h4>
+<pre><code>&lt;script&gt;
+  (function () {
+    const btn = document.querySelector('.theme-toggle');
+    if (!btn) return;
+    const root = document.documentElement;
+    btn.setAttribute('aria-pressed', root.getAttribute('data-theme') === 'dark');
+    btn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      btn.setAttribute('aria-pressed', next === 'dark');
+      try { localStorage.setItem('sodeker-docs-theme', next); } catch (e) {}
+    });
+  })();
+&lt;/script&gt;</code></pre>
+
+  <div class="callout">
+    <div class="callout__icon">●</div>
+    <div>
+      <p class="callout__title">Cómo funciona el tema oscuro</p>
+      <p class="callout__body">El atributo <code>data-theme="dark"</code> en <code>&lt;html&gt;</code> sobrescribe los tokens CSS (fondos, tintas, acentos, sombras). Toda la paleta neutral se invierte, el turquesa se aclara a <code>#4AB7C0</code> para mantener contraste AA y los SVG con cajas blancas se reemplazan por <code>--paper-soft</code>.</p>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <nav class="doc-nav">
@@ -279,6 +344,7 @@
     <li><a href="#">Flow</a></li>
     <li><a href="#">Slider</a></li>
     <li><a href="#">Botones</a></li>
+    <li><a href="#">Theme toggle</a></li>
   </ul>
 </nav>
 </div>

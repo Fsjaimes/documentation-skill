@@ -8,8 +8,31 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./sodeker.css">
+  <script>
+    // Aplica el tema antes del render para evitar flash claro→oscuro
+    (function () {
+      try {
+        var stored = localStorage.getItem('sodeker-docs-theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = stored || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body class="with-grid">
+
+  <!-- Botón de cambio de tema (luna / sol), fijo en esquina superior derecha -->
+  <button class="theme-toggle" type="button" aria-label="Cambiar tema (claro / oscuro)" title="Cambiar tema">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+  </button>
+
   <div class="doc-layout">
 
     <!-- =================== CONTENIDO (IZQUIERDA) =================== -->
@@ -106,6 +129,20 @@
   </div>
 
   <script>
+    // Toggle del tema claro/oscuro (persiste en localStorage)
+    (function () {
+      const btn = document.querySelector('.theme-toggle');
+      if (!btn) return;
+      const root = document.documentElement;
+      btn.setAttribute('aria-pressed', root.getAttribute('data-theme') === 'dark');
+      btn.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        btn.setAttribute('aria-pressed', next === 'dark');
+        try { localStorage.setItem('sodeker-docs-theme', next); } catch (e) {}
+      });
+    })();
+
     // Resalta la sección activa en el sidebar derecho al hacer scroll
     (function () {
       const links = document.querySelectorAll('.doc-nav__list a[href^="#"]');

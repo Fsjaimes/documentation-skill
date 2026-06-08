@@ -83,6 +83,8 @@ Hacer preguntas focalizadas (máximo 5–6) antes de generar nada:
 
 **Layout HTML**: usar `.doc-layout` con contenido a la izquierda y `<nav class="doc-nav">` a la derecha (sticky, scroll independiente).
 
+**Tema claro / oscuro (obligatorio en HTML)**: cada documento incluye el botón `.theme-toggle` (luna/sol) fijo en la esquina superior derecha. Las tres piezas — script anti-flash en `<head>`, botón al inicio del `<body>`, handler al final — están en `templates/html/shell.html` y en el ejemplo. El estado se guarda en `localStorage` (`sodeker-docs-theme`) y respeta `prefers-color-scheme` en la primera visita. **No** quitar el botón ni el script: forma parte del estándar Sódeker Docs.
+
 **Markdown**: un archivo `.md` por sección dentro de una carpeta `docs/`, más un `README.md` que actúa como índice. (Markdown no genera CSS, así que no aplica la regla de reutilización.)
 
 ### 5. Verificar visualmente
