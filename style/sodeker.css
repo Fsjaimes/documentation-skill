@@ -39,6 +39,9 @@
   --warning-50:   #FFFBEB;
   --warning-600:  #B45309;
   --warning-200:  #FDE68A;
+  --danger-50:    #FEF2F2;
+  --danger-600:   #B91C1C;
+  --danger-200:   #FECACA;
 
   /* Type */
   --font-sans: "Inter", "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -261,6 +264,7 @@ small { font-size: var(--fs-small); color: var(--ink-400); }
 .badge--neutral { background: var(--ink-050); color: var(--ink-600); border-color: var(--ink-100); }
 .badge--success { background: var(--success-50); color: var(--success-600); border-color: var(--success-200); }
 .badge--warning { background: var(--warning-50); color: var(--warning-600); border-color: var(--warning-200); }
+.badge--danger  { background: var(--danger-50);  color: var(--danger-600);  border-color: var(--danger-200); }
 
 /* ---------- 7. Card ---------- */
 .card {
@@ -357,6 +361,8 @@ small { font-size: var(--fs-small); color: var(--ink-400); }
 .callout--warning .callout__icon { color: var(--warning-600); }
 .callout--success { background: var(--success-50); border-left-color: var(--success-600); }
 .callout--success .callout__icon { color: var(--success-600); }
+.callout--danger  { background: var(--danger-50);  border-left-color: var(--danger-600); }
+.callout--danger .callout__icon { color: var(--danger-600); }
 
 /* ---------- 11. Table ---------- */
 .table-wrap {
@@ -613,12 +619,15 @@ pre code { background: transparent; padding: 0; color: inherit; font-size: inher
   --accent-700:   #C8E9EC;
   --accent:       var(--accent-500);
 
-  --success-50:   rgba(4, 120, 87, 0.18);
+  --success-50:   rgba(4, 120, 87, 0.28);
   --success-600:  #6EE7B7;
-  --success-200:  rgba(4, 120, 87, 0.45);
-  --warning-50:   rgba(180, 83, 9, 0.18);
+  --success-200:  rgba(4, 120, 87, 0.55);
+  --warning-50:   rgba(180, 83, 9, 0.28);
   --warning-600:  #FCD34D;
-  --warning-200:  rgba(180, 83, 9, 0.45);
+  --warning-200:  rgba(180, 83, 9, 0.55);
+  --danger-50:    rgba(185, 28, 28, 0.28);
+  --danger-600:   #FCA5A5;
+  --danger-200:   rgba(185, 28, 28, 0.55);
 
   --border:       1px solid var(--ink-100);
   --border-hair:  1px solid rgba(255, 255, 255, 0.08);
@@ -649,6 +658,36 @@ pre code { background: transparent; padding: 0; color: inherit; font-size: inher
 /* Botón primario: texto oscuro sobre teal claro */
 [data-theme="dark"] .btn--primary { color: var(--paper); }
 [data-theme="dark"] .btn--primary:hover { background: var(--accent-600); color: var(--paper); }
+
+/* Callouts semánticos: texto blanco en oscuro para no perderse contra el tinte de color */
+[data-theme="dark"] .callout--warning,
+[data-theme="dark"] .callout--success,
+[data-theme="dark"] .callout--danger {
+  color: #FFFFFF;
+}
+[data-theme="dark"] .callout--warning .callout__title,
+[data-theme="dark"] .callout--success .callout__title,
+[data-theme="dark"] .callout--danger  .callout__title,
+[data-theme="dark"] .callout--warning .callout__body,
+[data-theme="dark"] .callout--success .callout__body,
+[data-theme="dark"] .callout--danger  .callout__body {
+  color: #FFFFFF;
+}
+[data-theme="dark"] .callout--warning .callout__body code,
+[data-theme="dark"] .callout--success .callout__body code,
+[data-theme="dark"] .callout--danger  .callout__body code,
+[data-theme="dark"] .callout--warning .callout__body strong,
+[data-theme="dark"] .callout--success .callout__body strong,
+[data-theme="dark"] .callout--danger  .callout__body strong {
+  color: #FFFFFF;
+}
+
+/* Badges semánticos: texto blanco en oscuro */
+[data-theme="dark"] .badge--warning,
+[data-theme="dark"] .badge--success,
+[data-theme="dark"] .badge--danger {
+  color: #FFFFFF;
+}
 
 /* SVG figures con presentation attributes: invertir cajas blancas y bordes claros */
 [data-theme="dark"] .figure svg rect[fill="#FFFFFF"] { fill: var(--paper-soft); }

@@ -109,7 +109,7 @@ Hacer preguntas focalizadas (máximo 5–6) antes de generar nada:
 - **Usa analogías** para explicar conceptos complejos. El lector objetivo aprende mejor con gráficos y ejemplos.
 - Mantén vocabulario técnico, pero **explícalo siempre**. No asumas que el lector es el desarrollador original.
 - La sección de Soporte se escribe en **lenguaje accesible para no desarrolladores** (analista de soporte, QA, mesa de ayuda). Sin jerga sin contexto.
-- **Diagrama por cada concepto, flujo o transformación**. Si algo se puede expresar como "X → Y → Z", debe tener un SVG al lado. No basta con describirlo en texto. Ej: comando → job → job → importer.
+- **Diagramas cuando aporten claridad, no por inercia.** Si un concepto se entiende sin ayuda visual (definición corta, lista de pasos lineal, parámetros), no fuerces un SVG. Reserva el diagrama para lo que sí lo necesita: relaciones que se ven mejor que se leen (X → Y → Z con bifurcación), arquitecturas con varios componentes, flujos con ramas, transformaciones de datos. Mejor pocos diagramas potentes que muchos decorativos.
 - **Consistencia en card-grids**: dentro de un mismo `.card-grid`, todas las cards usan la misma variante (`card`, `card--accent` o `card--accent-left`). No mezclar dentro del mismo grupo conceptual.
 - **Métricas solo con datos reales**: `metric-grid` solo cuando represente cifras verificables (capacidad, latencia, volumen, KPIs). Nunca como decoración tipo dashboard en guías conceptuales.
 - Sentence case en titulares, etiquetas y botones (no Title Case ni MAYÚSCULAS).
@@ -121,9 +121,15 @@ Hacer preguntas focalizadas (máximo 5–6) antes de generar nada:
 - Animaciones cortas (120–360ms), respeta `prefers-reduced-motion`. Sin bounces.
 - Diagramas de flujo: tarjetas conectadas + flechas, numeradas, breves.
 
-### Gráficos interactivos por concepto (obligatorio)
-- **Toda explicación de un concepto, flujo, transformación, comparación, decisión o arquitectura debe acompañarse de un gráfico interactivo.** No basta texto + diagrama estático.
-- Antes de redactar la sección, abre `documentation-widgets/README.md`, ubica el concepto en la **tabla de selección** y elige el patrón que mejor lo represente:
+### Gráficos interactivos (uso selectivo, no decorativo)
+- **Regla de uso**: un widget interactivo cuesta atención del lector. Úsalo solo cuando *aporte comprensión real* que un diagrama estático no puede dar (explorar estados, comparar variantes, recorrer pasos, manipular un input). Si el concepto se entiende igual con un SVG estático o una tabla, no metas widget.
+- **Mínimo y máximo por documento**:
+  - **Obligatorio**: el concepto central del módulo (lo que el lector debe entender primero) lleva **un** widget interactivo bien construido — datos reales, etiquetas claras, navegación que se siente útil.
+  - **Máximo recomendado**: 2 widgets por documento. Solo agrega un segundo si hay un concepto secundario *igualmente complejo* que justifique otro modo de interacción distinto. Tres o más casi siempre es abuso.
+  - **Nunca**: dos widgets del mismo patrón en el mismo documento salvo que comparen explícitamente dos cosas (ej. flujo de importación vs. flujo de exportación). Repetir el mismo patrón con datos distintos cansa al lector.
+- **Antes de meter un widget, pregúntate**: ¿el lector necesita *hacer click / arrastrar / navegar* para entender esto, o solo necesita *ver* la relación? Si la respuesta es "solo ver", usa SVG estático o tabla.
+- **Cuándo SÍ usar widget** (orientativo, no exhaustivo): la arquitectura del sistema con componentes que el lector debe explorar uno por uno; una máquina de estados con transiciones; un pipeline donde el orden importa y se aprende moviendo; un árbol de decisión con varias ramas; una comparación N×M de opciones. **Cuándo NO usar widget**: definiciones, listas de pasos lineales sin ramificación, dependencias simples, FAQs, configuraciones.
+- Cuando decidas que sí va widget, abre `documentation-widgets/README.md`, ubica el concepto en la **tabla de selección** y elige el patrón:
   - Procesos lineales (3–6 pasos) → `01-flow-steps.html`
   - Arquitectura con componentes → `02-hotspots-architecture.html`
   - Máquinas de estado / ciclos de vida → `03-time-scrubber.html`
@@ -138,8 +144,9 @@ Hacer preguntas focalizadas (máximo 5–6) antes de generar nada:
   - Operaciones de conjuntos / SQL joins → `12-sql-joins.html`
   - Tutoriales con validación → `13-wizard-steps.html`
 - Copia el bloque del patrón, **reemplaza únicamente el objeto `// === DATOS ===`** del `<script>` con los datos del concepto. No modifiques la lógica.
-- Si en una página coexisten dos widgets del mismo patrón, prefija los `id` con el slug del concepto (ej. `flow-imports-nc0`, `flow-exports-nc0`) para evitar colisiones.
+- Si en una página coexisten dos widgets del mismo patrón (caso justificado), prefija los `id` con el slug del concepto (ej. `flow-imports-nc0`, `flow-exports-nc0`) para evitar colisiones.
 - Cuando el concepto no encaje exactamente en ningún patrón, prioriza adaptar el más cercano antes que inventar uno nuevo desde cero.
+- Para conceptos secundarios donde una imagen ayude pero la interacción no aporte, usa **SVG estático estilo Distill** (hairline, conectores grises, tipografía Inter). No es obligatorio que cada concepto tenga uno: solo cuando el texto no basta para que el lector "vea" la relación. Tabla, cards o pills suelen ser suficientes para definiciones, parámetros o listados.
 
 ### Bloques de consola (estilo mac-apple)
 - Toda sección que muestre comandos de terminal usa el bloque `.terminal` del ejemplo `examples/documentation-importacion-data.html`: cabecera oscura `.terminal__bar` con los tres puntos `.terminal__dots`, título en caps con tracking, y cuerpo `.terminal__body` en mono claro sobre fondo `#0F172A`.
