@@ -1,0 +1,138 @@
+<!--
+  Patrón 11 — Mapa conceptual
+  Cuándo usar: relaciones no lineales entre múltiples conceptos.
+  Interacción: clic en un nodo para resaltar sus conexiones directas.
+-->
+<section class="section pattern-11" id="map-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Mapa conceptual</span>
+    <h2>Relación entre <span class="accent">componentes</span></h2>
+    <p class="lede">Cada nodo es un concepto y las aristas indican cómo se relacionan. Explora haciendo clic.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Haz clic en un nodo para resaltar sus conexiones directas.
+  </p>
+
+  <svg class="cm-svg" id="cm-svg" viewBox="0 0 640 380"></svg>
+  <div class="cm-info">
+    <p class="cm-info__title" id="cm-title">Selecciona un nodo</p>
+    <p class="cm-info__desc" id="cm-desc">Cada nodo representa un concepto y las aristas indican la relación entre ellos.</p>
+    <div id="cm-rels"></div>
+  </div>
+</section>
+
+<style>
+  .pattern-11 .cm-svg{width:100%;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;}
+  .pattern-11 .cm-node{cursor:pointer;transition:opacity .2s;}
+  .pattern-11 .cm-node text{pointer-events:none;}
+  .pattern-11 .cm-node.dim{opacity:.2;}
+  .pattern-11 .cm-node.focus rect{stroke-width:3;}
+  .pattern-11 .cm-edge{stroke:var(--ink-300,#d3d1c7);stroke-width:1.5;fill:none;transition:stroke .2s,opacity .2s;}
+  .pattern-11 .cm-edge.lit{stroke:var(--accent,#534AB7);stroke-width:2.5;}
+  .pattern-11 .cm-edge.dim{opacity:.15;}
+  .pattern-11 .cm-edge-label{font-size:9px;fill:var(--ink-500,#78716c);pointer-events:none;transition:fill .2s,opacity .2s;}
+  .pattern-11 .cm-edge-label.lit{fill:var(--accent,#534AB7);font-weight:500;}
+  .pattern-11 .cm-edge-label.dim{opacity:.2;}
+  .pattern-11 .cm-info{margin-top:14px;padding:14px 16px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;min-height:80px;}
+  .pattern-11 .cm-info__title{font-size:14px;font-weight:500;margin:0 0 6px;color:var(--ink-700,#292524);}
+  .pattern-11 .cm-info__desc{font-size:13px;color:var(--ink-500,#78716c);margin:0 0 8px;line-height:1.6;}
+  .pattern-11 .cm-rel{display:inline-block;font-size:11px;padding:2px 8px;background:#fff;border:1px solid var(--ink-200,#e4e2d8);border-radius:4px;margin:2px 4px 2px 0;color:var(--ink-700,#292524);}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  // Posiciones x,y dentro del viewBox 640x380. Cada nodo ~100x36.
+  const mapa = {
+    nodos: [
+      { id:'req',   titulo:'Request',    x:60,  y:190, color:'gray',
+        descripcion:'Objeto que encapsula la petición HTTP con headers, body y parámetros.' },
+      { id:'mw',    titulo:'Middleware', x:180, y:90,  color:'blue',
+        descripcion:'Filtros que procesan la petición antes y después del controlador.' },
+      { id:'route', titulo:'Router',     x:200, y:280, color:'blue',
+        descripcion:'Resuelve qué controlador debe atender la URL solicitada.' },
+      { id:'ctrl',  titulo:'Controller', x:340, y:190, color:'purple',
+        descripcion:'Coordina la respuesta orquestando servicios, modelos y vistas.' },
+      { id:'svc',   titulo:'Service',    x:460, y:90,  color:'amber',
+        descripcion:'Lógica de negocio reutilizable, independiente del framework.' },
+      { id:'mdl',   titulo:'Model',      x:460, y:290, color:'teal',
+        descripcion:'Representa una tabla y encapsula reglas del dominio. Eloquent ORM.' },
+      { id:'db',    titulo:'Database',   x:580, y:200, color:'teal',
+        descripcion:'Persistencia relacional. PostgreSQL, MySQL o SQLite.' }
+    ],
+    aristas: [
+      { desde:'req',  hasta:'mw',    etiqueta:'pasa por' },
+      { desde:'mw',   hasta:'route', etiqueta:'delega a' },
+      { desde:'route',hasta:'ctrl',  etiqueta:'invoca' },
+      { desde:'ctrl', hasta:'svc',   etiqueta:'usa' },
+      { desde:'ctrl', hasta:'mdl',   etiqueta:'consulta' },
+      { desde:'svc',  hasta:'mdl',   etiqueta:'manipula' },
+      { desde:'mdl',  hasta:'db',    etiqueta:'persiste en' },
+      { desde:'svc',  hasta:'db',    etiqueta:'consulta' }
+    ]
+  };
+  // === LÓGICA ===
+  const palette = {
+    gray:{ f:'#F1EFE8', s:'#5F5E5A', t:'#2C2C2A' },
+    blue:{ f:'#E6F1FB', s:'#185FA5', t:'#0C447C' },
+    purple:{ f:'#EEEDFE', s:'#534AB7', t:'#3C3489' },
+    amber:{ f:'#FAEEDA', s:'#854F0B', t:'#412402' },
+    teal:{ f:'#E1F5EE', s:'#0F6E56', t:'#04342C' },
+    coral:{ f:'#FAECE7', s:'#993C1D', t:'#712B13' }
+  };
+  const svg = document.getElementById('cm-svg');
+  const byId = id => mapa.nodos.find(n => n.id === id);
+  let html = '';
+  mapa.aristas.forEach((e, i) => {
+    const a = byId(e.desde), b = byId(e.hasta);
+    if (!a || !b) return;
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    html += `<line class="cm-edge" data-edge="${i}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`;
+    html += `<text class="cm-edge-label" data-edge="${i}" x="${mx}" y="${my-4}" text-anchor="middle">${e.etiqueta}</text>`;
+  });
+  mapa.nodos.forEach(n => {
+    const c = palette[n.color] || palette.purple;
+    html += `<g class="cm-node" data-id="${n.id}">
+      <rect x="${n.x-50}" y="${n.y-18}" width="100" height="36" rx="8" fill="${c.f}" stroke="${c.s}" stroke-width="1.5"/>
+      <text x="${n.x}" y="${n.y+5}" text-anchor="middle" font-size="13" font-weight="500" fill="${c.t}">${n.titulo}</text>
+    </g>`;
+  });
+  svg.innerHTML = html;
+  const title = document.getElementById('cm-title');
+  const desc = document.getElementById('cm-desc');
+  const rels = document.getElementById('cm-rels');
+  svg.querySelectorAll('.cm-node').forEach(g => {
+    g.addEventListener('click', () => {
+      const id = g.dataset.id;
+      const connected = new Set([id]);
+      const myEdges = [];
+      mapa.aristas.forEach((e, i) => {
+        if (e.desde === id || e.hasta === id) {
+          connected.add(e.desde); connected.add(e.hasta);
+          myEdges.push({ i, other: e.desde === id ? e.hasta : e.desde, etiqueta: e.etiqueta });
+        }
+      });
+      svg.querySelectorAll('.cm-node').forEach(n => {
+        n.classList.remove('focus', 'dim');
+        if (n.dataset.id === id) n.classList.add('focus');
+        else if (!connected.has(n.dataset.id)) n.classList.add('dim');
+      });
+      svg.querySelectorAll('.cm-edge,.cm-edge-label').forEach(el => {
+        el.classList.remove('lit', 'dim');
+        const ei = +el.dataset.edge;
+        if (myEdges.some(m => m.i === ei)) el.classList.add('lit');
+        else el.classList.add('dim');
+      });
+      const n = byId(id);
+      title.textContent = n.titulo;
+      desc.textContent = n.descripcion;
+      rels.innerHTML = myEdges.map(m => {
+        const other = byId(m.other);
+        return `<span class="cm-rel"><strong>${m.etiqueta}</strong> ${other.titulo}</span>`;
+      }).join('');
+    });
+  });
+})();
+</script>

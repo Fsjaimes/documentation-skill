@@ -1,0 +1,98 @@
+<!--
+  Patrón 02 — Hotspots arquitectura
+  Cuándo usar: explicar componentes de un sistema uno a uno.
+  Interacción: clic sobre cualquier componente para ver su responsabilidad.
+-->
+<section class="section pattern-02" id="hotspots-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Arquitectura</span>
+    <h2>Componentes <span class="accent">del sistema</span></h2>
+    <p class="lede">Cada pieza del diagrama tiene una responsabilidad concreta. Explora haciendo clic.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Haz clic en cualquier componente para ver su descripción.
+  </p>
+
+  <svg class="hs-svg" id="hs-svg" viewBox="0 0 640 320"></svg>
+  <div class="hs-panel">
+    <p class="hs-panel__title" id="hs-title">Selecciona un componente</p>
+    <p class="hs-panel__desc" id="hs-desc">Cada nodo del diagrama representa una capa del sistema. Haz clic para ver su responsabilidad.</p>
+    <span class="hs-panel__meta" id="hs-meta" style="display:none;"></span>
+  </div>
+</section>
+
+<style>
+  .pattern-02 .hs-svg{width:100%;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;padding:8px;box-sizing:border-box;}
+  .pattern-02 .hs-node{cursor:pointer;transition:opacity .15s;}
+  .pattern-02 .hs-node:hover{opacity:.85;}
+  .pattern-02 .hs-node.active rect{stroke-width:2.5;}
+  .pattern-02 .hs-panel{margin-top:14px;padding:14px 16px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;min-height:90px;}
+  .pattern-02 .hs-panel__title{font-size:15px;font-weight:500;margin:0 0 4px;color:var(--ink-700,#292524);}
+  .pattern-02 .hs-panel__desc{font-size:13px;color:var(--ink-500,#78716c);margin:0;line-height:1.6;}
+  .pattern-02 .hs-panel__meta{display:inline-block;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;padding:2px 8px;border-radius:4px;background:#fff;border:1px solid var(--ink-200,#e4e2d8);margin-top:8px;color:var(--ink-700,#292524);}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  const nodos = [
+    { id:'client', nombre:'Cliente', subtitulo:'Vue.js', x:40, y:100, w:90, h:80, color:'blue',
+      info:{ descripcion:'Capa de presentación. Renderiza vistas reactivas, gestiona estado local y orquesta llamadas al backend.', ruta:'src/resources/js' }},
+    { id:'api', nombre:'API Gateway', subtitulo:'Laravel · FastAPI', x:240, y:100, w:130, h:80, color:'purple',
+      info:{ descripcion:'Punto único de entrada. Laravel maneja autenticación, validación y CRUD; FastAPI atiende inferencia.', ruta:'app/Http/Controllers' }},
+    { id:'db', nombre:'Persistencia', subtitulo:'PostgreSQL', x:480, y:100, w:120, h:80, color:'teal',
+      info:{ descripcion:'Almacenamiento relacional para datos estructurados del dominio. Acceso vía Eloquent ORM.', ruta:'database/migrations' }},
+    { id:'rag', nombre:'RAG Engine', subtitulo:'ChromaDB', x:240, y:220, w:130, h:50, color:'amber',
+      info:{ descripcion:'Indexa documentos en vectores y devuelve fragmentos relevantes para alimentar el contexto del LLM.', ruta:'services/rag' }}
+  ];
+  const conexiones = [
+    { desde:'client', hasta:'api', estilo:'solid' },
+    { desde:'api', hasta:'db', estilo:'solid' },
+    { desde:'api', hasta:'rag', estilo:'dashed' }
+  ];
+  // === LÓGICA ===
+  const palette = {
+    blue:{ f:'#E6F1FB', s:'#185FA5', t:'#0C447C' },
+    purple:{ f:'#EEEDFE', s:'#534AB7', t:'#3C3489' },
+    teal:{ f:'#E1F5EE', s:'#0F6E56', t:'#04342C' },
+    amber:{ f:'#FAEEDA', s:'#854F0B', t:'#412402' },
+    coral:{ f:'#FAECE7', s:'#993C1D', t:'#712B13' }
+  };
+  const svg = document.getElementById('hs-svg');
+  const byId = id => nodos.find(n => n.id === id);
+  const center = n => ({ x: n.x + n.w/2, y: n.y + n.h/2 });
+  let html = `<defs><marker id="hs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#888780"/></marker></defs>`;
+  conexiones.forEach(c => {
+    const a = byId(c.desde), b = byId(c.hasta);
+    if (!a || !b) return;
+    const ca = center(a), cb = center(b);
+    const dash = c.estilo === 'dashed' ? 'stroke-dasharray="5 4"' : '';
+    html += `<line x1="${ca.x}" y1="${ca.y}" x2="${cb.x}" y2="${cb.y}" stroke="#888780" stroke-width="1.5" marker-end="url(#hs-arrow)" ${dash}/>`;
+  });
+  nodos.forEach(n => {
+    const c = palette[n.color] || palette.purple;
+    html += `<g class="hs-node" data-id="${n.id}">
+      <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="8" fill="${c.f}" stroke="${c.s}" stroke-width="1.5"/>
+      <text x="${n.x + n.w/2}" y="${n.y + n.h/2 - 4}" text-anchor="middle" font-size="13" font-weight="500" fill="${c.t}">${n.nombre}</text>
+      <text x="${n.x + n.w/2}" y="${n.y + n.h/2 + 14}" text-anchor="middle" font-size="11" fill="${c.s}">${n.subtitulo}</text>
+    </g>`;
+  });
+  svg.innerHTML = html;
+  const title = document.getElementById('hs-title');
+  const desc = document.getElementById('hs-desc');
+  const meta = document.getElementById('hs-meta');
+  svg.querySelectorAll('.hs-node').forEach(n => {
+    n.addEventListener('click', () => {
+      svg.querySelectorAll('.hs-node').forEach(x => x.classList.remove('active'));
+      n.classList.add('active');
+      const node = byId(n.dataset.id);
+      title.textContent = node.nombre + ' · ' + node.subtitulo;
+      desc.textContent = node.info.descripcion;
+      meta.textContent = node.info.ruta;
+      meta.style.display = node.info.ruta ? 'inline-block' : 'none';
+    });
+  });
+})();
+</script>

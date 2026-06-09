@@ -1,0 +1,133 @@
+<!--
+  Patrón 10 — Tabla comparativa
+  Cuándo usar: comparar N opciones con múltiples atributos (drivers, planes, libs).
+  Interacción: ordenar por columna, filtrar, expandir fila para ver detalle + código.
+-->
+<section class="section pattern-10" id="table-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Comparación</span>
+    <h2>Drivers de <span class="accent">caché</span></h2>
+    <p class="lede">Compara las opciones disponibles. Ordena por cualquier columna y expande para ver detalle.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Haz clic en una cabecera para ordenar. Haz clic en una fila para expandir.
+  </p>
+
+  <input type="text" id="tb-search" class="tb-search" placeholder="Filtrar...">
+  <div class="tb-scroll">
+    <table class="tb-table" id="tb-table">
+      <thead><tr id="tb-head"></tr></thead>
+      <tbody id="tb-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+  .pattern-10 .tb-search{width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--ink-300,#d3d1c7);border-radius:8px;background:#fff;margin-bottom:10px;color:var(--ink-700,#292524);font-family:inherit;box-sizing:border-box;}
+  .pattern-10 .tb-scroll{overflow-x:auto;border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;}
+  .pattern-10 .tb-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;}
+  .pattern-10 .tb-table th{text-align:left;padding:10px 12px;background:var(--ink-50,#f8f7f4);font-weight:500;font-size:12px;color:var(--ink-500,#78716c);cursor:pointer;user-select:none;border-bottom:1px solid var(--ink-200,#e4e2d8);white-space:nowrap;}
+  .pattern-10 .tb-table th:hover{color:var(--ink-700,#292524);}
+  .pattern-10 .tb-table th .arr{opacity:.3;margin-left:4px;font-size:10px;}
+  .pattern-10 .tb-table th.asc .arr,.pattern-10 .tb-table th.desc .arr{opacity:1;}
+  .pattern-10 .tb-table td{padding:10px 12px;border-bottom:1px solid var(--ink-200,#e4e2d8);color:var(--ink-700,#292524);}
+  .pattern-10 .tb-row{cursor:pointer;transition:background .12s;}
+  .pattern-10 .tb-row:hover{background:var(--ink-50,#f8f7f4);}
+  .pattern-10 .tb-detail td{padding:0;background:var(--ink-50,#f8f7f4);}
+  .pattern-10 .tb-detail__inner{padding:14px 18px;font-size:12px;line-height:1.7;color:var(--ink-500,#78716c);}
+  .pattern-10 .tb-detail__inner pre{margin:8px 0 0;padding:10px 12px;background:#1e1e26;color:#e4e4e7;border-radius:8px;font-family:ui-monospace,Menlo,monospace;font-size:11px;overflow-x:auto;}
+  .pattern-10 .tb-pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;}
+  .pattern-10 .tb-pill.hi{background:var(--success-soft,#E1F5EE);color:var(--success-dark,#04342C);}
+  .pattern-10 .tb-pill.md{background:var(--warning-soft,#FAEEDA);color:var(--warning-dark,#412402);}
+  .pattern-10 .tb-pill.lo{background:var(--danger-soft,#FCEBEB);color:var(--danger-dark,#501313);}
+  .pattern-10 .tb-chev{display:inline-block;transition:transform .15s;color:var(--ink-500,#78716c);font-size:11px;margin-right:6px;}
+  .pattern-10 .tb-row.open .tb-chev{transform:rotate(90deg);}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  const config = {
+    columnas: [
+      { key:'nombre',  label:'Driver',       tipo:'text' },
+      { key:'velocidad', label:'Velocidad',  tipo:'pill', sortable:true, sortType:'num' },
+      { key:'persiste', label:'Persistencia', tipo:'pill' },
+      { key:'distribuido', label:'Distribuido', tipo:'pill' },
+      { key:'setup',   label:'Setup',         tipo:'pill', sortable:true, sortType:'num' }
+    ],
+    filas: [
+      { nombre:'Array',     velocidad:5, persiste:'No', distribuido:'No', setup:1,
+        _detalle:{ descripcion:'Solo vive durante la petición actual. Útil en tests; no sirve en producción.', codigo:'CACHE_DRIVER=array' }},
+      { nombre:'File',      velocidad:2, persiste:'Sí', distribuido:'No', setup:1,
+        _detalle:{ descripcion:'Guarda en storage/framework/cache. No requiere infraestructura, pero no escala en multi-servidor.', codigo:'CACHE_DRIVER=file' }},
+      { nombre:'Database',  velocidad:1, persiste:'Sí', distribuido:'Sí', setup:2,
+        _detalle:{ descripcion:'Usa una tabla del mismo motor de BD. Distribuido sin servicios extra pero lento para alto volumen.', codigo:'php artisan cache:table\nphp artisan migrate\n# CACHE_DRIVER=database' }},
+      { nombre:'Memcached', velocidad:4, persiste:'No', distribuido:'Sí', setup:3,
+        _detalle:{ descripcion:'Memoria distribuida muy rápida. No persiste tras reinicio del servicio.', codigo:'CACHE_DRIVER=memcached\nMEMCACHED_HOST=127.0.0.1' }},
+      { nombre:'Redis',     velocidad:5, persiste:'Sí', distribuido:'Sí', setup:3,
+        _detalle:{ descripcion:'Memoria con persistencia opcional. Soporta locks y pub/sub. Recomendado en producción.', codigo:'CACHE_DRIVER=redis\nREDIS_HOST=127.0.0.1\nREDIS_PORT=6379' }}
+    ]
+  };
+  // === LÓGICA ===
+  const head = document.getElementById('tb-head');
+  const body = document.getElementById('tb-body');
+  let sortKey = null, sortDir = 'desc', filter = '';
+  head.innerHTML = config.columnas.map(c => `<th data-k="${c.key}">${c.label}<span class="arr">▲▼</span></th>`).join('');
+  function pill(v, key){
+    if (typeof v === 'number') {
+      const c = v >= 4 ? 'hi' : v >= 2 ? 'md' : 'lo';
+      const t = v >= 4 ? 'Alta' : v >= 2 ? 'Media' : 'Baja';
+      return `<span class="tb-pill ${c}">${t}</span>`;
+    }
+    const c = v === 'Sí' ? 'hi' : 'lo';
+    return `<span class="tb-pill ${c}">${v}</span>`;
+  }
+  function cellHtml(col, val, isFirst){
+    if (col.tipo === 'pill') return pill(val, col.key);
+    if (isFirst) return `<span class="tb-chev">▶</span><strong>${val}</strong>`;
+    return val;
+  }
+  function render(){
+    const rows = config.filas
+      .filter(r => Object.values(r).filter(v => typeof v === 'string').some(v => v.toLowerCase().includes(filter)))
+      .sort((a, b) => {
+        if (!sortKey) return 0;
+        const av = a[sortKey], bv = b[sortKey];
+        const cmp = typeof av === 'number' ? av - bv : String(av).localeCompare(String(bv));
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    body.innerHTML = rows.map((r, i) => {
+      const cells = config.columnas.map((c, j) => `<td>${cellHtml(c, r[c.key], j === 0)}</td>`).join('');
+      const det = r._detalle;
+      return `<tr class="tb-row" data-i="${i}">${cells}</tr>
+        <tr class="tb-detail" data-i="${i}" hidden><td colspan="${config.columnas.length}"><div class="tb-detail__inner">${det.descripcion}${det.codigo ? `<pre>${det.codigo}</pre>` : ''}</div></td></tr>`;
+    }).join('');
+    body.querySelectorAll('.tb-row').forEach(tr => {
+      tr.addEventListener('click', () => {
+        const i = tr.dataset.i;
+        const det = body.querySelector(`.tb-detail[data-i="${i}"]`);
+        const open = !det.hidden;
+        body.querySelectorAll('.tb-detail').forEach(d => d.hidden = true);
+        body.querySelectorAll('.tb-row').forEach(r => r.classList.remove('open'));
+        if (!open) { det.hidden = false; tr.classList.add('open'); }
+      });
+    });
+    head.querySelectorAll('th').forEach(th => {
+      th.classList.remove('asc', 'desc');
+      if (th.dataset.k === sortKey) th.classList.add(sortDir);
+    });
+  }
+  head.querySelectorAll('th').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.k;
+      if (sortKey === k) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortKey = k; sortDir = 'desc'; }
+      render();
+    });
+  });
+  document.getElementById('tb-search').addEventListener('input', e => { filter = e.target.value.toLowerCase(); render(); });
+  render();
+})();
+</script>

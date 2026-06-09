@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Importación de datos · Suite — Guía operativa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./sodeker.css">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('sodeker-docs-theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = stored || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    .pill {
+      display: inline-block;
+      background: var(--ink-050);
+      border: 1px solid var(--ink-100);
+      color: var(--ink-600);
+      font-family: var(--font-mono);
+      font-size: var(--fs-micro);
+      padding: 2px 8px;
+      border-radius: var(--r-sm);
+    }
+    .pill--accent {
+      background: var(--accent-50);
+      color: var(--accent-700);
+      border-color: var(--accent-100);
+      font-weight: 600;
+    }
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1);
+      margin-top: var(--space-2);
+    }
+    .pill-note {
+      font-size: var(--fs-micro);
+      color: var(--ink-400);
+      margin-top: var(--space-2);
+      font-style: italic;
+    }
+    .pill-note strong { color: var(--accent-700); font-style: normal; }
+
+    /* Terminal box (dark) */
+    .terminal {
+      border-radius: var(--r-md);
+      overflow: hidden;
+      border: 1px solid var(--ink-200);
+      box-shadow: var(--shadow-sm);
+      background: #0F172A;
+      margin: var(--space-3) 0;
+    }
+    .terminal__bar {
+      background: #1E293B;
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .terminal__dots { display: flex; gap: 5px; }
+    .terminal__dots span { width: 11px; height: 11px; border-radius: 50%; }
+    .dot-r { background: #64748B; }
+    .dot-y { background: #64748B; }
+    .dot-g { background: #64748B; }
+    .terminal__title {
+      font-size: var(--fs-micro);
+      font-weight: 600;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-left: var(--space-2);
+      font-family: var(--font-mono);
+    }
+    .terminal__body {
+      padding: var(--space-4) var(--space-5);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.75;
+      color: #E2E8F0;
+    }
+    .terminal__body .t-cmt    { color: #64748B; font-style: italic; }
+    .terminal__body .t-prompt { color: #7DD3FC; font-weight: 600; }
+    .terminal__body .t-cmd    { color: #E2E8F0; }
+    .terminal__body .t-arg    { color: #FCD34D; }
+    .terminal__body .t-flag   { color: #C4B5FD; }
+    .terminal__body .t-ok     { color: #86EFAC; font-style: italic; }
+    .terminal__body div + br { line-height: 0.5; }
+
+    /* Layout para los dos terminales lado a lado */
+    .terminal-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin: var(--space-5) 0;
+    }
+    @media (max-width: 720px) { .terminal-pair { grid-template-columns: 1fr; } }
+    .terminal-col { display: flex; flex-direction: column; gap: var(--space-3); }
+
+    /* Comandos numerados */
+    .cmd-stack { display: grid; gap: var(--space-4); margin: var(--space-5) 0; }
+    .cmd-item {
+      border: var(--border);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: var(--shadow-xs);
+    }
+    .cmd-item__head {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-5);
+      background: var(--paper-tint);
+      border-bottom: 1px solid var(--ink-100);
+    }
+    .cmd-item__num {
+      width: 24px; height: 24px;
+      border-radius: var(--r-pill);
+      background: var(--accent);
+      color: var(--paper);
+      font-size: var(--fs-micro);
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+    }
+    .cmd-item__title {
+      font-size: var(--fs-small);
+      font-weight: 600;
+      color: var(--ink-900);
+    }
+    .cmd-item__code {
+      background: #0F172A;
+      color: #E2E8F0;
+      padding: var(--space-3) var(--space-5);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .cmd-item__code .t-arg  { color: #FCD34D; }
+    .cmd-item__code .t-flag { color: #C4B5FD; }
+    .cmd-item__foot {
+      padding: var(--space-3) var(--space-5);
+      font-size: var(--fs-small);
+      color: var(--ink-600);
+      border-top: 1px solid var(--ink-100);
+      background: var(--paper-tint);
+    }
+    .cmd-item__foot strong { color: var(--ink-900); }
+
+    /* SQL box */
+    .sql-box {
+      border-radius: var(--r-md);
+      overflow: hidden;
+      border: 1px solid var(--ink-200);
+      background: #0F172A;
+      margin: var(--space-4) 0;
+      box-shadow: var(--shadow-xs);
+    }
+    .sql-box__bar {
+      background: #1E293B;
+      padding: var(--space-2) var(--space-5);
+      font-size: var(--fs-micro);
+      font-weight: 600;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .sql-box__body {
+      padding: var(--space-4) var(--space-5);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: #E2E8F0;
+    }
+    .sql-box .kw  { color: #C4B5FD; font-weight: 700; }
+    .sql-box .tbl { color: #7DD3FC; }
+    .sql-box .val { color: #86EFAC; }
+    .sql-box .cm  { color: #64748B; font-style: italic; }
+
+    /* Flujo interactivo (3 nodos) */
+    .interactive-flow {
+      background: var(--paper);
+      border: var(--border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-xs);
+      padding: var(--space-8) var(--space-6) var(--space-6);
+      margin: var(--space-6) 0;
+    }
+    .interactive-flow__eyebrow {
+      text-align: center;
+      font-size: var(--fs-micro);
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--ink-400);
+      margin-bottom: var(--space-6);
+      font-family: var(--font-mono);
+    }
+    .if-nodes {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: var(--space-6);
+      flex-wrap: nowrap;
+    }
+    .if-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      flex-shrink: 0;
+    }
+    .if-node__circle {
+      width: 64px; height: 64px;
+      border-radius: var(--r-pill);
+      border: 2px solid var(--ink-200);
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-300);
+      transition: border-color var(--dur-base) var(--ease),
+                  background var(--dur-base) var(--ease),
+                  color var(--dur-base) var(--ease),
+                  box-shadow var(--dur-base) var(--ease);
+    }
+    .if-node__circle.is-lit {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--paper);
+      box-shadow: 0 0 0 6px var(--accent-50);
+    }
+    .if-node__label {
+      font-size: var(--fs-micro);
+      font-weight: 700;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink-400);
+      max-width: 92px;
+      transition: color var(--dur-base) var(--ease);
+      font-family: var(--font-mono);
+      line-height: 1.3;
+    }
+    .if-node__label.is-lit { color: var(--accent-700); }
+    .if-arrow {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-bottom: 26px;
+      padding: 0 var(--space-2);
+    }
+    .if-arrow__line {
+      height: 2px; width: 64px;
+      background: var(--ink-100);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .if-arrow__line .fill {
+      position: absolute; top: 0; left: 0;
+      height: 100%; width: 0%;
+      background: var(--accent);
+      transition: width var(--dur-slow) var(--ease);
+      border-radius: 2px;
+    }
+    .if-arrow__line.is-filled .fill { width: 100%; }
+    .if-arrow__head {
+      width: 0; height: 0;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 9px solid var(--ink-100);
+      transition: border-left-color var(--dur-base) var(--ease);
+      flex-shrink: 0;
+    }
+    .if-arrow__head.is-lit { border-left-color: var(--accent); }
+    .if-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--ink-100);
+    }
+    .if-hint {
+      font-size: var(--fs-small);
+      color: var(--ink-500);
+      font-family: var(--font-mono);
+    }
+    .if-hint strong { color: var(--accent-700); }
+  </style>
+</head>
+<body class="with-grid">
+
+  <button class="theme-toggle" type="button" aria-label="Cambiar tema (claro / oscuro)" title="Cambiar tema">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+  </button>
+
+  <div class="doc-layout">
+
+    <main class="doc-content">
+
+      <!-- HERO -->
+      <header class="section" style="border-bottom: none; padding-top: var(--space-8);">
+        <span class="badge">Guía operativa · Laravel + Docker</span>
+        <h1 class="display" style="margin-top: var(--space-4);">
+          Importación de <span class="accent">datos</span>
+        </h1>
+        <p class="lede">
+          Referencia para el equipo de desarrollo. Describe el proceso de importación de
+          terceros, equipos y artículos mediante comandos Artisan dentro del contenedor
+          Docker de la Suite.
+        </p>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="metric__value">2</div>
+            <div class="metric__label">Terminales en paralelo</div>
+          </div>
+          <div class="metric">
+            <div class="metric__value">3</div>
+            <div class="metric__label">Etapas internas: comando · lectura · inserción</div>
+          </div>
+          <div class="metric">
+            <div class="metric__value">3</div>
+            <div class="metric__label">Comandos a ejecutar en orden</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ================== FLUJO INTERACTIVO ================== -->
+      <section id="flujo" class="section">
+        <header class="section__header">
+          <span class="badge">Flujo del proceso</span>
+          <h2>¿Cómo funciona <span class="accent">internamente</span>?</h2>
+          <p class="lede">
+            Cada vez que se ejecuta un comando de importación, internamente suceden tres
+            etapas en secuencia. Recorre el gráfico para verlas en orden.
+          </p>
+        </header>
+
+        <p style="font-size: var(--fs-small); color: var(--ink-500);">
+          <span class="interactive-badge" aria-label="Interactivo">↺</span>
+          Usa los botones para avanzar por las tres etapas.
+        </p>
+
+        <div class="interactive-flow">
+          <div class="interactive-flow__eyebrow">Flujo interno de importación</div>
+
+          <div class="if-nodes">
+            <div class="if-node">
+              <div class="if-node__circle is-lit" id="nc0">
+                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                  <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+                </svg>
+              </div>
+              <div class="if-node__label is-lit" id="nl0">Comando<br>Artisan</div>
+            </div>
+
+            <div class="if-arrow">
+              <div class="if-arrow__line" id="al0"><div class="fill"></div></div>
+              <div class="if-arrow__head" id="ah0"></div>
+            </div>
+
+            <div class="if-node">
+              <div class="if-node__circle" id="nc1">
+                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="8" y1="13" x2="16" y2="13"/>
+                  <line x1="8" y1="17" x2="16" y2="17"/>
+                </svg>
+              </div>
+              <div class="if-node__label" id="nl1">Leer<br>JSON</div>
+            </div>
+
+            <div class="if-arrow">
+              <div class="if-arrow__line" id="al1"><div class="fill"></div></div>
+              <div class="if-arrow__head" id="ah1"></div>
+            </div>
+
+            <div class="if-node">
+              <div class="if-node__circle" id="nc2">
+                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                  <path d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5"/>
+                  <path d="M3 12c0 1.657 4.03 3 9 3s9-1.343 9-3"/>
+                </svg>
+              </div>
+              <div class="if-node__label" id="nl2">Inserción<br>en BD</div>
+            </div>
+          </div>
+
+          <div class="if-nav">
+            <button class="btn btn--secondary" id="fp-prev" type="button" disabled>← Anterior</button>
+            <div class="if-hint">Etapa <strong id="fp-cur">1</strong> de <strong>3</strong></div>
+            <button class="btn btn--primary" id="fp-next" type="button">Siguiente →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== PRERREQUISITOS ================== -->
+      <section id="prerrequisitos" class="section">
+        <header class="section__header">
+          <span class="badge">Prerrequisitos</span>
+          <h2>Verificar <span class="accent">antes de importar</span></h2>
+          <p class="lede">
+            Verificar que en la base de datos del <strong>tenant</strong> existan los
+            siguientes registros maestros. Si falta alguno, la importación puede fallar
+            o generar inconsistencias.
+          </p>
+        </header>
+
+        <div class="card-grid">
+          <article class="card card--accent">
+            <h3 class="card__title">Unidad de medida</h3>
+            <div class="pill-list">
+              <span class="pill pill--accent">94</span>
+            </div>
+          </article>
+          <article class="card card--accent">
+            <h3 class="card__title">Tipos de producto</h3>
+            <div class="pill-list">
+              <span class="pill">EQUIPO</span>
+              <span class="pill">ARTICULO</span>
+            </div>
+          </article>
+          <article class="card card--accent">
+            <h3 class="card__title">Impuestos</h3>
+            <div class="pill-list">
+              <span class="pill">0</span>
+              <span class="pill">19</span>
+              <span class="pill">IVA</span>
+              <span class="pill">SD</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="card card--accent" style="margin-top: var(--space-4);">
+          <h3 class="card__title">Categorías de producto</h3>
+          <div class="pill-list">
+            <span class="pill pill--accent">SD</span>
+            <span class="pill">016</span><span class="pill">ARTROSCOPIA</span><span class="pill">COLUMNA</span>
+            <span class="pill">EQUIPOS</span><span class="pill">MAXILOFACIAL</span><span class="pill">SALDO</span>
+            <span class="pill">TRAUMA</span><span class="pill">0</span><span class="pill">00</span>
+            <span class="pill">01</span><span class="pill">CEMENTOS</span><span class="pill">CLAVO</span>
+            <span class="pill">CRANEO</span><span class="pill">ESCAFANDRAS</span><span class="pill">HAND</span>
+            <span class="pill">HAND-LOKING</span><span class="pill">INSTRUMENTAL</span><span class="pill">LAPAROSCOPIA</span>
+            <span class="pill">LINEA-BLANDA</span><span class="pill">MANO</span><span class="pill">MAXILO</span>
+            <span class="pill">MAXILO-MANO</span><span class="pill">MEDICINA-DEPORTIVA</span><span class="pill">MOTOR</span>
+            <span class="pill">MOTORES</span><span class="pill">OSTEOSINTESIS</span><span class="pill">OSTESINTESIS</span>
+            <span class="pill">RADIO</span><span class="pill">REEMPLAZO</span><span class="pill">REEMPLAZOS</span>
+            <span class="pill">SET</span><span class="pill">SUTURAS</span><span class="pill">TUT-ILIZAROV</span>
+            <span class="pill">TUTORES</span>
+          </div>
+          <p class="pill-note"><strong>SD</strong> = Sin Definir (categoría por defecto)</p>
+        </div>
+      </section>
+
+      <!-- ================== TERMINALES ================== -->
+      <section id="preparacion" class="section">
+        <header class="section__header">
+          <span class="badge">Preparación del entorno</span>
+          <h2>Dos terminales en <span class="accent">paralelo</span></h2>
+          <p class="lede">
+            Se necesitan dos consolas abiertas simultáneamente: una mantiene el worker
+            de colas activo, y la otra ejecuta los comandos de importación. La
+            Terminal 1 debe estar corriendo <em>antes</em> de lanzar cualquier comando
+            en la Terminal 2.
+          </p>
+        </header>
+
+        <div class="terminal-pair">
+          <div class="terminal-col">
+            <div class="terminal">
+              <div class="terminal__bar">
+                <div class="terminal__dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+                <div class="terminal__title">Terminal 1 — Worker</div>
+              </div>
+              <div class="terminal__body">
+                <div class="t-cmt"># 1. Entrar al contenedor</div>
+                <div><span class="t-prompt">$</span> <span class="t-cmd">docker exec</span> <span class="t-arg">-it laravel_app_suite bash</span></div>
+                <br>
+                <div class="t-cmt"># 2. Levantar el worker de colas</div>
+                <div><span class="t-prompt">$</span> <span class="t-cmd">php artisan</span> <span class="t-arg">queue:work</span></div>
+                <br>
+                <div class="t-ok">→ Dejar corriendo durante toda la importación</div>
+              </div>
+            </div>
+            <div class="callout">
+              <div class="callout__icon">●</div>
+              <div>
+                <p class="callout__title">¿Qué hace queue:work?</p>
+                <p class="callout__body">
+                  Mantiene un proceso escuchando la cola de Laravel y ejecuta los jobs
+                  de importación a medida que el comando <code>import</code> los encola.
+                  Sin este proceso activo, los registros no se insertan en la base de
+                  datos.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="terminal-col">
+            <div class="terminal">
+              <div class="terminal__bar">
+                <div class="terminal__dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+                <div class="terminal__title">Terminal 2 — Importación</div>
+              </div>
+              <div class="terminal__body">
+                <div class="t-cmt"># 1. Entrar al contenedor</div>
+                <div><span class="t-prompt">$</span> <span class="t-cmd">docker exec</span> <span class="t-arg">-it laravel_app_suite bash</span></div>
+                <br>
+                <div class="t-cmt"># 2. Ejecutar comandos de importación</div>
+                <div><span class="t-prompt">$</span> <span class="t-cmd">php artisan</span> <span class="t-arg">import</span> …</div>
+                <br>
+                <div class="t-ok">→ Ver siguiente sección para el orden exacto</div>
+              </div>
+            </div>
+            <div class="callout">
+              <div class="callout__icon">●</div>
+              <div>
+                <p class="callout__title">Consejo</p>
+                <p class="callout__body">
+                  Abre ambas terminales antes de empezar. Una vez que la Terminal 1
+                  muestra el worker activo, ya puedes proceder con los comandos en la
+                  Terminal 2.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== COMANDOS ================== -->
+      <section id="comandos" class="section">
+        <header class="section__header">
+          <span class="badge">Orden de ejecución</span>
+          <h2>Comandos de <span class="accent">importación</span></h2>
+          <p class="lede">
+            Respetar el orden es obligatorio: los productos referencian a terceros, por
+            lo tanto los terceros deben importarse primero.
+          </p>
+        </header>
+
+        <div class="callout callout--warning">
+          <div class="callout__icon">▲</div>
+          <div>
+            <p class="callout__title">Empezar siempre por terceros</p>
+            <p class="callout__body">
+              Si se importan productos antes que terceros, los registros quedarán con
+              referencias rotas y deberás reimportar.
+            </p>
+          </div>
+        </div>
+
+        <div class="cmd-stack">
+          <div class="cmd-item">
+            <div class="cmd-item__head">
+              <span class="cmd-item__num">1</span>
+              <span class="cmd-item__title">Importar terceros</span>
+            </div>
+            <div class="cmd-item__code">php artisan import <span class="t-arg">third_parties</span></div>
+            <div class="cmd-item__foot">Lee por defecto: <strong>public/imports/third_parties.json</strong></div>
+          </div>
+
+          <div class="cmd-item">
+            <div class="cmd-item__head">
+              <span class="cmd-item__num">2</span>
+              <span class="cmd-item__title">Importar productos · equipos</span>
+            </div>
+            <div class="cmd-item__code">php artisan import <span class="t-arg">products develop</span></div>
+            <div class="cmd-item__foot">Lee por defecto: <strong>public/imports/develop/products.json</strong> — registros tipo <strong>EQUIPO</strong></div>
+          </div>
+
+          <div class="cmd-item">
+            <div class="cmd-item__head">
+              <span class="cmd-item__num">3</span>
+              <span class="cmd-item__title">Importar productos · artículos</span>
+            </div>
+            <div class="cmd-item__code">php artisan import <span class="t-arg">products develop</span> <span class="t-flag">--file=</span>public/imports/develop/products_articles.json</div>
+            <div class="cmd-item__foot">Se indica el archivo explícitamente con <strong>--file</strong> — registros tipo <strong>ARTICULO</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== VERIFICACIÓN ================== -->
+      <section id="verificacion" class="section">
+        <header class="section__header">
+          <span class="badge">Verificación</span>
+          <h2>Auditar la <span class="accent">importación</span></h2>
+          <p class="lede">
+            Una vez finalizada la importación, consultar la tabla
+            <code>import_row_logs</code> en la BD del tenant para identificar registros
+            que no se procesaron correctamente.
+          </p>
+        </header>
+
+        <div class="sql-box">
+          <div class="sql-box__bar">SQL · tenant DB</div>
+          <div class="sql-box__body"><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> <span class="tbl">public.import_row_logs</span>
+<span class="kw">WHERE</span> status != <span class="val">'ok'</span>
+<span class="kw">ORDER BY</span> id <span class="kw">ASC</span>;</div>
+        </div>
+
+        <div class="callout">
+          <div class="callout__icon">●</div>
+          <div>
+            <p class="callout__title">Cómo interpretar el resultado</p>
+            <p class="callout__body">
+              Cada fila con <code>status</code> distinto de <code>ok</code> indica un
+              registro que falló y debe revisarse manualmente. La causa más común: falta
+              alguno de los registros maestros listados en
+              <a href="#prerrequisitos">Prerrequisitos</a>, o el JSON contiene un código
+              que no existe en los catálogos de la base de datos.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== CHEAT SHEET ================== -->
+      <section id="cheat-sheet" class="section">
+        <header class="section__header">
+          <span class="badge">Referencia rápida</span>
+          <h2>Todos los comandos en <span class="accent">un solo lugar</span></h2>
+          <p class="lede">
+            Para quien ya conoce el proceso y solo necesita copiar y pegar.
+          </p>
+        </header>
+
+        <div class="terminal-pair">
+          <div class="terminal">
+            <div class="terminal__bar">
+              <div class="terminal__dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+              <div class="terminal__title">Todos los comandos</div>
+            </div>
+            <div class="terminal__body">
+              <div class="t-cmt"># Terminal 1</div>
+              <div><span class="t-prompt">$</span> docker exec -it laravel_app_suite bash</div>
+              <div><span class="t-prompt">$</span> <span class="t-cmd">php artisan</span> <span class="t-arg">queue:work</span></div>
+              <br>
+              <div class="t-cmt"># Terminal 2</div>
+              <div><span class="t-prompt">$</span> docker exec -it laravel_app_suite bash</div>
+              <div><span class="t-prompt">$</span> <span class="t-cmd">php artisan</span> <span class="t-arg">import third_parties</span></div>
+              <div><span class="t-prompt">$</span> <span class="t-cmd">php artisan</span> <span class="t-arg">import products develop</span></div>
+              <div><span class="t-prompt">$</span> <span class="t-cmd">php artisan</span> <span class="t-arg">import products develop</span> <span class="t-flag">--file=</span>public/imports/develop/products_articles.json</div>
+            </div>
+          </div>
+
+          <div class="sql-box">
+            <div class="sql-box__bar">Verificación post-importación</div>
+            <div class="sql-box__body"><span class="cm">-- Registros con error</span>
+<span class="kw">SELECT</span> *
+<span class="kw">FROM</span> <span class="tbl">public.import_row_logs</span>
+<span class="kw">WHERE</span> status != <span class="val">'ok'</span>
+<span class="kw">ORDER BY</span> id <span class="kw">ASC</span>;
+
+<span class="cm">-- Conteo total de errores</span>
+<span class="kw">SELECT COUNT</span>(*)
+<span class="kw">FROM</span> <span class="tbl">public.import_row_logs</span>
+<span class="kw">WHERE</span> status != <span class="val">'ok'</span>;</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ================== NAVEGACIÓN ================== -->
+    <nav class="doc-nav" aria-label="Navegación de la documentación">
+      <p class="doc-nav__label">Contenido</p>
+      <ul class="doc-nav__list">
+        <li><a href="#flujo">Flujo del proceso</a></li>
+        <li><a href="#prerrequisitos">Prerrequisitos</a></li>
+        <li><a href="#preparacion">Preparación del entorno</a></li>
+        <li><a href="#comandos">Comandos de importación</a></li>
+        <li><a href="#verificacion">Verificación</a></li>
+        <li><a href="#cheat-sheet">Referencia rápida</a></li>
+      </ul>
+    </nav>
+
+  </div>
+
+  <script>
+    // Theme toggle
+    (function () {
+      const btn = document.querySelector('.theme-toggle');
+      if (!btn) return;
+      const root = document.documentElement;
+      btn.setAttribute('aria-pressed', root.getAttribute('data-theme') === 'dark');
+      btn.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        btn.setAttribute('aria-pressed', next === 'dark');
+        try { localStorage.setItem('sodeker-docs-theme', next); } catch (e) {}
+      });
+    })();
+
+    // Sidebar scroll-spy
+    (function () {
+      const links = document.querySelectorAll('.doc-nav__list a[href^="#"]');
+      const targets = Array.from(links)
+        .map(a => document.querySelector(a.getAttribute('href')))
+        .filter(Boolean);
+      if (!targets.length) return;
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            const id = '#' + e.target.id;
+            links.forEach(l => l.classList.toggle('is-active', l.getAttribute('href') === id));
+          }
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      targets.forEach(t => obs.observe(t));
+    })();
+
+    // Interactive flow (3 steps)
+    (function () {
+      let step = 0;
+      const prev = document.getElementById('fp-prev');
+      const next = document.getElementById('fp-next');
+      const cur  = document.getElementById('fp-cur');
+      if (!prev || !next || !cur) return;
+
+      function render() {
+        for (let i = 0; i < 3; i++) {
+          const c = document.getElementById('nc' + i);
+          const l = document.getElementById('nl' + i);
+          c.classList.toggle('is-lit', i <= step);
+          l.classList.toggle('is-lit', i <= step);
+        }
+        for (let a = 0; a < 2; a++) {
+          document.getElementById('al' + a).classList.toggle('is-filled', a < step);
+          document.getElementById('ah' + a).classList.toggle('is-lit',    a < step);
+        }
+        cur.textContent = step + 1;
+        prev.disabled = step === 0;
+        next.disabled = step === 2;
+        next.textContent = step === 2 ? 'Completado ✓' : 'Siguiente →';
+      }
+
+      prev.addEventListener('click', () => { step = Math.max(0, step - 1); render(); });
+      next.addEventListener('click', () => { step = Math.min(2, step + 1); render(); });
+      render();
+    })();
+  </script>
+</body>
+</html>

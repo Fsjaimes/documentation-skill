@@ -1,0 +1,95 @@
+<!--
+  Patrón 04 — Pipeline arrastrable
+  Cuándo usar: composición de middlewares, filtros, transformaciones.
+  Interacción: arrastrar bloques de la paleta a la zona de pipeline; reorganizar; clic para quitar.
+-->
+<section class="section pattern-04" id="pipeline-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Composición</span>
+    <h2>Construye tu <span class="accent">pipeline</span></h2>
+    <p class="lede">Arrastra middlewares desde la paleta y ordénalos. El orden de ejecución importa.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Arrastra los bloques. Haz clic en un bloque del pipeline para quitarlo.
+  </p>
+
+  <div class="pl-label">Paleta de bloques</div>
+  <div class="pl-palette" id="pl-palette"></div>
+  <div class="pl-label" style="margin-top:14px;">Pipeline de la petición</div>
+  <div class="pl-drop empty" id="pl-drop"></div>
+  <button class="btn btn--secondary" id="pl-reset" type="button" style="margin-top:12px;">Limpiar pipeline</button>
+</section>
+
+<style>
+  .pattern-04 .pl-label{font-size:12px;font-weight:500;color:var(--ink-500,#78716c);margin-bottom:6px;}
+  .pattern-04 .pl-palette,.pattern-04 .pl-drop{padding:12px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;min-height:60px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .pattern-04 .pl-drop{border-style:dashed;flex-wrap:nowrap;overflow-x:auto;transition:background .15s;}
+  .pattern-04 .pl-drop.over{background:var(--info-soft,#E6F1FB);border-color:var(--info,#185FA5);}
+  .pattern-04 .pl-drop.empty::before{content:'Suelta aquí los bloques en el orden que deben ejecutarse';color:var(--ink-500,#78716c);font-size:12px;width:100%;text-align:center;opacity:.7;}
+  .pattern-04 .pl-block{padding:8px 12px;background:#fff;border:1px solid var(--ink-300,#d3d1c7);border-radius:8px;font-size:13px;cursor:grab;user-select:none;display:flex;align-items:center;gap:6px;white-space:nowrap;color:var(--ink-700,#292524);}
+  .pattern-04 .pl-block svg{width:16px;height:16px;color:var(--ink-500,#78716c);}
+  .pattern-04 .pl-drop .pl-block{background:var(--accent-soft,#EEEDFE);border-color:var(--accent,#534AB7);color:var(--accent-dark,#3C3489);}
+  .pattern-04 .pl-drop .pl-block svg{color:var(--accent,#534AB7);}
+  .pattern-04 .pl-arrow{font-size:14px;color:var(--ink-500,#78716c);flex-shrink:0;opacity:.5;}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  const bloques = [
+    { id:'cors', nombre:'CORS', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>' },
+    { id:'auth', nombre:'Auth', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' },
+    { id:'rate', nombre:'Rate Limit', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
+    { id:'valid', nombre:'Validar', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' },
+    { id:'log', nombre:'Log', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' },
+    { id:'cache', nombre:'Cache', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' }
+  ];
+  // === LÓGICA ===
+  const palette = document.getElementById('pl-palette');
+  const drop = document.getElementById('pl-drop');
+  function makeBlock(b, inDrop){
+    const el = document.createElement('div');
+    el.className = 'pl-block'; el.draggable = true; el.dataset.id = b.id;
+    el.innerHTML = `${b.icono}<span>${b.nombre}</span>`;
+    el.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', JSON.stringify({ ...b, from: inDrop ? 'drop' : 'palette' }));
+      setTimeout(() => el.style.opacity = '.4', 0);
+    });
+    el.addEventListener('dragend', () => el.style.opacity = '1');
+    if (inDrop) {
+      el.addEventListener('click', () => { el.remove(); updateArrows(); });
+      el.title = 'Clic para quitar';
+    }
+    return el;
+  }
+  function updateArrows(){
+    [...drop.querySelectorAll('.pl-arrow')].forEach(a => a.remove());
+    const items = [...drop.querySelectorAll('.pl-block')];
+    items.forEach((it, i) => {
+      if (i < items.length - 1) {
+        const ar = document.createElement('span');
+        ar.className = 'pl-arrow';
+        ar.innerHTML = '→';
+        it.after(ar);
+      }
+    });
+    drop.classList.toggle('empty', items.length === 0);
+  }
+  bloques.forEach(b => palette.appendChild(makeBlock(b, false)));
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('over');
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    if (data.from === 'drop') {
+      const existing = drop.querySelector(`[data-id="${data.id}"]`);
+      if (existing) existing.remove();
+    }
+    drop.appendChild(makeBlock(data, true));
+    updateArrows();
+  });
+  document.getElementById('pl-reset').onclick = () => { drop.innerHTML = ''; updateArrows(); };
+})();
+</script>

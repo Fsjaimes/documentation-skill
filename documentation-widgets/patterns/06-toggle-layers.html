@@ -1,0 +1,114 @@
+<!--
+  Patrón 06 — Capas conmutables
+  Cuándo usar: stack tecnológico, arquitectura por niveles donde cada capa
+  depende de la inferior.
+  Interacción: toggle on/off por capa; clic sobre una capa para ver su detalle.
+-->
+<section class="section pattern-06" id="layers-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Stack por capas</span>
+    <h2>Niveles de la <span class="accent">arquitectura</span></h2>
+    <p class="lede">Cada capa tiene una responsabilidad única. Activa y desactiva capas para ver qué se rompería sin ellas.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Activa o desactiva capas y haz clic sobre una para ver su rol.
+  </p>
+
+  <div class="lr-toggles" id="lr-toggles"></div>
+  <svg class="lr-svg" id="lr-svg" viewBox="0 0 640 320"></svg>
+  <div class="lr-info">
+    <p class="lr-info__title" id="lr-title">Selecciona una capa</p>
+    <p class="lr-info__desc" id="lr-desc">Cada capa tiene una responsabilidad única. Desactivar una capa ilustra qué se rompe sin ella.</p>
+    <span class="lr-info__stack" id="lr-stack" style="display:none;"></span>
+  </div>
+</section>
+
+<style>
+  .pattern-06 .lr-toggles{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .pattern-06 .lr-toggle{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:8px;font-size:12px;cursor:pointer;user-select:none;color:var(--ink-700,#292524);}
+  .pattern-06 .lr-toggle input{margin:0;}
+  .pattern-06 .lr-svg{width:100%;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;padding:12px 0;box-sizing:border-box;}
+  .pattern-06 .lr-layer{cursor:pointer;transition:opacity .25s;}
+  .pattern-06 .lr-layer.off{opacity:.15;}
+  .pattern-06 .lr-layer.selected rect{stroke-width:2.5;}
+  .pattern-06 .lr-info{margin-top:14px;padding:14px 16px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;min-height:80px;}
+  .pattern-06 .lr-info__title{font-size:14px;font-weight:500;margin:0 0 4px;color:var(--ink-700,#292524);}
+  .pattern-06 .lr-info__desc{font-size:13px;color:var(--ink-500,#78716c);margin:0;line-height:1.6;}
+  .pattern-06 .lr-info__stack{font-size:11px;font-family:ui-monospace,Menlo,monospace;color:var(--ink-700,#292524);margin-top:8px;display:inline-block;padding:2px 8px;background:#fff;border:1px solid var(--ink-200,#e4e2d8);border-radius:4px;}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  // Orden de arriba (UI) hacia abajo (datos). Las capas se renderizan apiladas.
+  const capas = [
+    { id:'ui',     titulo:'Interfaz de usuario', subtitulo:'Componentes Vue',     color:'blue',
+      descripcion:'Capa más alta. Renderiza vistas, captura interacciones y delega al estado. Sin ella el usuario no tiene cómo operar el sistema.',
+      modulo:'resources/js/components' },
+    { id:'state',  titulo:'Estado del cliente',  subtitulo:'Pinia · Composables', color:'purple',
+      descripcion:'Mantiene el estado reactivo y la lógica de UI. Si falta, los componentes pierden coordinación y memoria entre vistas.',
+      modulo:'stores/' },
+    { id:'api',    titulo:'API HTTP',             subtitulo:'Laravel · FastAPI',   color:'coral',
+      descripcion:'Puerta de entrada al backend. Autentica, valida, enruta y serializa. Sin esta capa el frontend no puede hablar con los datos.',
+      modulo:'app/Http/' },
+    { id:'domain', titulo:'Dominio',              subtitulo:'Servicios · Modelos', color:'amber',
+      descripcion:'Lógica de negocio. Reglas, cálculos y validaciones que no dependen de framework. El núcleo del sistema.',
+      modulo:'app/Services/' },
+    { id:'data',   titulo:'Persistencia',         subtitulo:'PostgreSQL · ChromaDB', color:'teal',
+      descripcion:'Almacena el estado durable. Sin persistencia el sistema olvida todo en cada reinicio.',
+      modulo:'database/' }
+  ];
+  // === LÓGICA ===
+  const palette = {
+    blue:{ f:'#E6F1FB', s:'#185FA5', t:'#0C447C' },
+    purple:{ f:'#EEEDFE', s:'#534AB7', t:'#3C3489' },
+    coral:{ f:'#FAECE7', s:'#993C1D', t:'#712B13' },
+    amber:{ f:'#FAEEDA', s:'#854F0B', t:'#412402' },
+    teal:{ f:'#E1F5EE', s:'#0F6E56', t:'#04342C' }
+  };
+  const togglesEl = document.getElementById('lr-toggles');
+  const svg = document.getElementById('lr-svg');
+  const title = document.getElementById('lr-title');
+  const desc = document.getElementById('lr-desc');
+  const stack = document.getElementById('lr-stack');
+  const state = {}; capas.forEach(l => state[l.id] = true);
+  let selected = null;
+  function render(){
+    let html = '';
+    capas.forEach((l, i) => {
+      const c = palette[l.color] || palette.purple;
+      const y = 20 + i * 56;
+      const on = state[l.id];
+      html += `<g class="lr-layer ${on ? '' : 'off'} ${selected === l.id ? 'selected' : ''}" data-id="${l.id}">
+        <rect x="80" y="${y}" width="480" height="48" rx="6" fill="${c.f}" stroke="${c.s}" stroke-width="1.5"/>
+        <text x="100" y="${y+22}" font-size="13" font-weight="500" fill="${c.t}">${l.titulo}</text>
+        <text x="100" y="${y+40}" font-size="11" fill="${c.s}">${l.subtitulo}</text>
+      </g>`;
+    });
+    svg.innerHTML = html;
+    svg.querySelectorAll('.lr-layer').forEach(g => {
+      g.addEventListener('click', () => { selected = g.dataset.id; updateInfo(); render(); });
+    });
+  }
+  function updateInfo(){
+    const l = capas.find(x => x.id === selected);
+    if (!l) return;
+    title.textContent = l.titulo;
+    desc.textContent = state[l.id] ? l.descripcion : '⚠ Capa desactivada. ' + l.descripcion;
+    stack.textContent = l.modulo;
+    stack.style.display = 'inline-block';
+  }
+  capas.forEach(l => {
+    const lbl = document.createElement('label');
+    lbl.className = 'lr-toggle';
+    lbl.innerHTML = `<input type="checkbox" checked data-id="${l.id}"><span>${l.titulo}</span>`;
+    lbl.querySelector('input').addEventListener('change', e => {
+      state[l.id] = e.target.checked; render(); if (selected === l.id) updateInfo();
+    });
+    togglesEl.appendChild(lbl);
+  });
+  render();
+})();
+</script>

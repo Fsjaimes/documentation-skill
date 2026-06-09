@@ -1,0 +1,100 @@
+<!--
+  Patrón 03 — Scrubber temporal
+  Cuándo usar: ciclos de vida, máquinas de estado, procesos con tiempo asociado.
+  Interacción: arrastrar el cabezal a lo largo de la línea de tiempo.
+-->
+<section class="section pattern-03" id="scrubber-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Línea de tiempo</span>
+    <h2>Ciclo de vida <span class="accent">de la petición</span></h2>
+    <p class="lede">Cada petición HTTP recorre estas fases. Arrastra el cabezal para ver qué ocurre en cada instante.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Arrastra el cabezal a lo largo de la línea.
+  </p>
+
+  <svg class="sc-svg" id="sc-svg" viewBox="0 0 640 140"></svg>
+  <div class="sc-info">
+    <div class="sc-info__head">
+      <p class="sc-info__title" id="sc-title"></p>
+      <span class="sc-info__time" id="sc-time"></span>
+    </div>
+    <p class="sc-info__desc" id="sc-desc"></p>
+  </div>
+</section>
+
+<style>
+  .pattern-03 .sc-svg{width:100%;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;touch-action:none;}
+  .pattern-03 .sc-stage{font-size:11px;fill:var(--ink-500,#78716c);text-anchor:middle;}
+  .pattern-03 .sc-stage.active{fill:var(--ink-700,#292524);font-weight:500;}
+  .pattern-03 .sc-info{margin-top:14px;padding:14px 16px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;min-height:80px;}
+  .pattern-03 .sc-info__head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .pattern-03 .sc-info__title{font-size:14px;font-weight:500;margin:0;color:var(--ink-700,#292524);}
+  .pattern-03 .sc-info__time{font-size:11px;font-family:ui-monospace,Menlo,monospace;color:var(--ink-500,#78716c);}
+  .pattern-03 .sc-info__desc{font-size:13px;color:var(--ink-500,#78716c);margin:0;line-height:1.6;}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  const etapas = [
+    { nombre:'Recibida', tiempoMs:0, descripcion:'El servidor recibe la petición HTTP entrante por el puerto configurado.' },
+    { nombre:'Middleware', tiempoMs:8, descripcion:'Pasa por CORS, autenticación, rate limiting y auditoría.' },
+    { nombre:'Routing', tiempoMs:12, descripcion:'El router resuelve qué controlador y método deben atender la petición.' },
+    { nombre:'Validación', tiempoMs:18, descripcion:'Form Request valida los parámetros y devuelve 422 si algo no cumple.' },
+    { nombre:'Lógica', tiempoMs:45, descripcion:'El controlador ejecuta la lógica de negocio, consulta servicios y modelos.' },
+    { nombre:'Respuesta', tiempoMs:62, descripcion:'Se serializa el resultado, se aplican transformers y se envía al cliente.' }
+  ];
+  // === LÓGICA ===
+  const svg = document.getElementById('sc-svg');
+  const title = document.getElementById('sc-title');
+  const desc = document.getElementById('sc-desc');
+  const time = document.getElementById('sc-time');
+  const x0 = 60, x1 = 580;
+  let handle, fill, stagesG, dragging = false;
+  function build(){
+    let html = `<line x1="${x0}" y1="70" x2="${x1}" y2="70" stroke="var(--ink-300,#d3d1c7)" stroke-width="2"/>`;
+    html += `<line id="sc-fill" x1="${x0}" y1="70" x2="${x0}" y2="70" stroke="var(--accent,#534AB7)" stroke-width="3"/>`;
+    html += `<g id="sc-stages">`;
+    etapas.forEach((s, i) => {
+      const x = x0 + (i/(etapas.length-1)) * (x1 - x0);
+      html += `<circle cx="${x}" cy="70" r="5" fill="#fff" stroke="var(--ink-300,#d3d1c7)" stroke-width="1.5" data-i="${i}"/>`;
+      html += `<text class="sc-stage" data-i="${i}" x="${x}" y="100">${s.nombre}</text>`;
+    });
+    html += `</g>`;
+    html += `<circle id="sc-handle" cx="${x0}" cy="70" r="11" fill="var(--accent,#534AB7)" stroke="#fff" stroke-width="3" style="cursor:grab;"/>`;
+    svg.innerHTML = html;
+    handle = document.getElementById('sc-handle');
+    fill = document.getElementById('sc-fill');
+    stagesG = document.getElementById('sc-stages');
+  }
+  function update(px){
+    const clamped = Math.max(x0, Math.min(x1, px));
+    handle.setAttribute('cx', clamped);
+    fill.setAttribute('x2', clamped);
+    const pct = (clamped - x0) / (x1 - x0);
+    const idx = Math.round(pct * (etapas.length - 1));
+    const s = etapas[idx];
+    title.textContent = s.nombre;
+    desc.textContent = s.descripcion;
+    time.textContent = `t = ${s.tiempoMs} ms`;
+    stagesG.querySelectorAll('text').forEach((t, i) => t.classList.toggle('active', i === idx));
+    stagesG.querySelectorAll('circle').forEach((c, i) => {
+      c.setAttribute('fill', i <= idx ? 'var(--accent,#534AB7)' : '#fff');
+      c.setAttribute('stroke', i <= idx ? 'var(--accent,#534AB7)' : 'var(--ink-300,#d3d1c7)');
+    });
+  }
+  function pxFromEvt(e){
+    const r = svg.getBoundingClientRect();
+    return ((e.clientX - r.left) / r.width) * 640;
+  }
+  build();
+  handle.addEventListener('pointerdown', e => { dragging = true; handle.setPointerCapture(e.pointerId); handle.style.cursor = 'grabbing'; });
+  svg.addEventListener('pointermove', e => { if (dragging) update(pxFromEvt(e)); });
+  svg.addEventListener('pointerup', () => { dragging = false; handle.style.cursor = 'grab'; });
+  svg.addEventListener('click', e => { if (!dragging) update(pxFromEvt(e)); });
+  update(x0);
+})();
+</script>

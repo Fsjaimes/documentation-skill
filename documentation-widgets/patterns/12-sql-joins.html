@@ -1,0 +1,121 @@
+<!--
+  Patrón 12 — Visualizador de joins / uniones
+  Cuándo usar: enseñar operaciones de conjuntos (SQL joins, intersección, unión).
+  Interacción: tabs para alternar entre tipos de unión, ver diagrama + resultado.
+-->
+<section class="section pattern-12" id="joins-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Operaciones de conjuntos</span>
+    <h2>Tipos de <span class="accent">SQL JOIN</span></h2>
+    <p class="lede">Cambia el tipo de unión y observa qué cambia en el conjunto resultante.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Selecciona un tipo de join para ver el diagrama y la tabla resultante.
+  </p>
+
+  <div class="jn-tabs" id="jn-tabs">
+    <button class="jn-tab active" data-j="inner">INNER JOIN</button>
+    <button class="jn-tab" data-j="left">LEFT JOIN</button>
+    <button class="jn-tab" data-j="right">RIGHT JOIN</button>
+    <button class="jn-tab" data-j="full">FULL OUTER</button>
+    <button class="jn-tab" data-j="cross">CROSS JOIN</button>
+  </div>
+  <div class="jn-row">
+    <div class="jn-diagram">
+      <svg viewBox="0 0 240 200" style="width:100%;">
+        <defs>
+          <clipPath id="jn-clipA"><circle cx="90" cy="100" r="60"/></clipPath>
+        </defs>
+        <g id="jn-fillA"><circle cx="90" cy="100" r="60" fill="var(--accent,#534AB7)" opacity="0"/></g>
+        <g id="jn-fillB"><circle cx="150" cy="100" r="60" fill="var(--accent,#534AB7)" opacity="0"/></g>
+        <g id="jn-fillInter" clip-path="url(#jn-clipA)"><circle cx="150" cy="100" r="60" fill="var(--accent,#534AB7)" opacity="0"/></g>
+        <circle cx="90" cy="100" r="60" fill="none" stroke="var(--ink-500,#78716c)" stroke-width="1.5"/>
+        <circle cx="150" cy="100" r="60" fill="none" stroke="var(--ink-500,#78716c)" stroke-width="1.5"/>
+        <text id="jn-labelA" x="60" y="50" font-size="12" font-weight="500" fill="var(--ink-700,#292524)"></text>
+        <text id="jn-labelB" x="180" y="50" font-size="12" font-weight="500" fill="var(--ink-700,#292524)"></text>
+        <text x="120" y="190" text-anchor="middle" font-size="11" fill="var(--ink-500,#78716c)" id="jn-name"></text>
+      </svg>
+    </div>
+    <div class="jn-tables">
+      <div>
+        <div class="jn-caption">Resultado</div>
+        <table class="jn-tbl">
+          <thead><tr><th id="jn-thA"></th><th id="jn-thB"></th></tr></thead>
+          <tbody id="jn-result"></tbody>
+        </table>
+      </div>
+      <pre class="jn-sql" id="jn-sql"></pre>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pattern-12 .jn-tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;}
+  .pattern-12 .jn-tab{padding:6px 12px;font-size:12px;font-family:ui-monospace,Menlo,monospace;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:6px;cursor:pointer;user-select:none;transition:all .15s;color:var(--ink-700,#292524);}
+  .pattern-12 .jn-tab.active{background:var(--accent,#534AB7);color:#fff;border-color:var(--accent,#534AB7);}
+  .pattern-12 .jn-row{display:grid;grid-template-columns:240px 1fr;gap:14px;align-items:start;}
+  @media (max-width:700px){ .pattern-12 .jn-row{ grid-template-columns:1fr; } }
+  .pattern-12 .jn-diagram{background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;padding:10px;}
+  .pattern-12 .jn-tables{display:flex;flex-direction:column;gap:10px;}
+  .pattern-12 .jn-tbl{font-size:11px;border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--ink-200,#e4e2d8);border-radius:8px;overflow:hidden;}
+  .pattern-12 .jn-tbl th{background:var(--ink-50,#f8f7f4);padding:5px 8px;text-align:left;font-weight:500;color:var(--ink-500,#78716c);font-size:10px;}
+  .pattern-12 .jn-tbl td{padding:4px 8px;border-top:1px solid var(--ink-200,#e4e2d8);font-family:ui-monospace,Menlo,monospace;color:var(--ink-700,#292524);}
+  .pattern-12 .jn-tbl td.null{color:var(--ink-500,#78716c);font-style:italic;}
+  .pattern-12 .jn-caption{font-size:10px;font-weight:500;color:var(--ink-500,#78716c);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+  .pattern-12 .jn-sql{background:#1e1e26;color:#e4e4e7;padding:10px 12px;border-radius:8px;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.6;margin:0;white-space:pre;overflow-x:auto;}
+  .pattern-12 .jn-sql .kw{color:#c4b5fd;}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  const datos = {
+    tablaA: { nombre:'clientes', registros:[{id:1,n:'Ana'},{id:2,n:'Beto'},{id:3,n:'Cami'},{id:4,n:'Dani'}] },
+    tablaB: { nombre:'pedidos',  registros:[{cid:1,p:'#A100'},{cid:1,p:'#A101'},{cid:3,p:'#A102'},{cid:5,p:'#A103'},{cid:6,p:'#A104'}] },
+    llaveA:'id', llaveB:'cid',
+    campoMostrarA:'n', campoMostrarB:'p',
+    joinPorDefecto:'inner'
+  };
+  // === LÓGICA ===
+  const A = datos.tablaA.registros, B = datos.tablaB.registros;
+  const joins = {
+    inner: { name:'INNER JOIN', a:false, b:false, inter:true,
+      sql:`<span class="kw">SELECT</span> a.${datos.campoMostrarA}, b.${datos.campoMostrarB}\n<span class="kw">FROM</span> ${datos.tablaA.nombre} a\n<span class="kw">INNER JOIN</span> ${datos.tablaB.nombre} b <span class="kw">ON</span> a.${datos.llaveA} = b.${datos.llaveB}`,
+      run: () => A.flatMap(a => B.filter(b => a[datos.llaveA] === b[datos.llaveB]).map(b => [a[datos.campoMostrarA], b[datos.campoMostrarB]])) },
+    left: { name:'LEFT JOIN', a:true, b:false, inter:true,
+      sql:`<span class="kw">SELECT</span> a.${datos.campoMostrarA}, b.${datos.campoMostrarB}\n<span class="kw">FROM</span> ${datos.tablaA.nombre} a\n<span class="kw">LEFT JOIN</span> ${datos.tablaB.nombre} b <span class="kw">ON</span> a.${datos.llaveA} = b.${datos.llaveB}`,
+      run: () => A.flatMap(a => { const m = B.filter(b => a[datos.llaveA] === b[datos.llaveB]); return m.length ? m.map(b => [a[datos.campoMostrarA], b[datos.campoMostrarB]]) : [[a[datos.campoMostrarA], null]]; }) },
+    right: { name:'RIGHT JOIN', a:false, b:true, inter:true,
+      sql:`<span class="kw">SELECT</span> a.${datos.campoMostrarA}, b.${datos.campoMostrarB}\n<span class="kw">FROM</span> ${datos.tablaA.nombre} a\n<span class="kw">RIGHT JOIN</span> ${datos.tablaB.nombre} b <span class="kw">ON</span> a.${datos.llaveA} = b.${datos.llaveB}`,
+      run: () => B.map(b => { const a = A.find(x => x[datos.llaveA] === b[datos.llaveB]); return [a ? a[datos.campoMostrarA] : null, b[datos.campoMostrarB]]; }) },
+    full: { name:'FULL OUTER JOIN', a:true, b:true, inter:true,
+      sql:`<span class="kw">SELECT</span> a.${datos.campoMostrarA}, b.${datos.campoMostrarB}\n<span class="kw">FROM</span> ${datos.tablaA.nombre} a\n<span class="kw">FULL OUTER JOIN</span> ${datos.tablaB.nombre} b <span class="kw">ON</span> a.${datos.llaveA} = b.${datos.llaveB}`,
+      run: () => { const r = []; A.forEach(a => { const m = B.filter(b => a[datos.llaveA] === b[datos.llaveB]); if (m.length) m.forEach(b => r.push([a[datos.campoMostrarA], b[datos.campoMostrarB]])); else r.push([a[datos.campoMostrarA], null]); }); B.filter(b => !A.find(a => a[datos.llaveA] === b[datos.llaveB])).forEach(b => r.push([null, b[datos.campoMostrarB]])); return r; } },
+    cross: { name:'CROSS JOIN', a:true, b:true, inter:true,
+      sql:`<span class="kw">SELECT</span> a.${datos.campoMostrarA}, b.${datos.campoMostrarB}\n<span class="kw">FROM</span> ${datos.tablaA.nombre} a\n<span class="kw">CROSS JOIN</span> ${datos.tablaB.nombre} b`,
+      run: () => A.flatMap(a => B.map(b => [a[datos.campoMostrarA], b[datos.campoMostrarB]])) }
+  };
+  document.getElementById('jn-labelA').textContent = datos.tablaA.nombre;
+  document.getElementById('jn-labelB').textContent = datos.tablaB.nombre;
+  document.getElementById('jn-thA').textContent = datos.tablaA.nombre;
+  document.getElementById('jn-thB').textContent = datos.tablaB.nombre;
+  function setOp(key){
+    const j = joins[key];
+    document.getElementById('jn-fillA').firstElementChild.setAttribute('opacity', j.a ? 0.35 : 0);
+    document.getElementById('jn-fillB').firstElementChild.setAttribute('opacity', j.b ? 0.35 : 0);
+    document.getElementById('jn-fillInter').firstElementChild.setAttribute('opacity', j.inter ? 0.55 : 0);
+    document.getElementById('jn-name').textContent = j.name;
+    const result = j.run();
+    const rows = result.slice(0, 8);
+    document.getElementById('jn-result').innerHTML = rows.map(r =>
+      `<tr><td class="${r[0] === null ? 'null' : ''}">${r[0] === null ? 'NULL' : r[0]}</td><td class="${r[1] === null ? 'null' : ''}">${r[1] === null ? 'NULL' : r[1]}</td></tr>`
+    ).join('') + (result.length > 8 ? `<tr><td colspan="2" style="text-align:center;color:var(--ink-500,#78716c);">…+${result.length - 8} más</td></tr>` : '');
+    document.getElementById('jn-sql').innerHTML = j.sql;
+    document.querySelectorAll('.pattern-12 .jn-tab').forEach(t => t.classList.toggle('active', t.dataset.j === key));
+  }
+  document.querySelectorAll('.pattern-12 .jn-tab').forEach(t => t.addEventListener('click', () => setOp(t.dataset.j)));
+  setOp(datos.joinPorDefecto);
+})();
+</script>

@@ -64,7 +64,10 @@ Hacer preguntas focalizadas (máximo 5–6) antes de generar nada:
 - `content-spec/0{N}-*.md` — qué debe responder cada sección que vas a generar.
 - `templates/html/shell.html` y `templates/html/components.html` — estructura base y snippets de componentes.
 - `templates/markdown/shell.md` — estructura base markdown.
-- `examples/` — output de referencia para calibrar estilo.
+- `documentation-widgets/README.md` — catálogo de 13 patrones interactivos (flujos, hotspots, scrubber temporal, drag pipeline, árbol de decisión, capas, antes/después, matching, editor de estructura, tabla comparativa, mapa conceptual, joins SQL, wizard). Consultar la **tabla de selección** y los **esquemas de datos por patrón** para decidir cuál usar y cómo poblarlo.
+- `documentation-widgets/patterns/0{N}-*.html` — implementación lista para inyectar de cada patrón.
+- `examples/ejemplo-inventarios.html` — output de referencia general.
+- `examples/documentation-importacion-data.html` — **referencia obligatoria** para: terminales estilo mac-apple (clases `.terminal`, `.terminal__bar`, `.terminal__dots`, `.terminal__body` con tokens `.t-cmt`, `.t-prompt`, `.t-cmd`, `.t-arg`, `.t-flag`, `.t-ok`), bloques SQL (`.sql-box`), comandos numerados (`.cmd-stack`/`.cmd-item`), flujo interactivo de N etapas (`.interactive-flow` con nodos `.if-node`, conectores `.if-arrow` y navegación `.if-nav`) y listas de pills (`.pill-list`, `.pill--accent`).
 
 ### 4. Generar la documentación
 
@@ -118,6 +121,34 @@ Hacer preguntas focalizadas (máximo 5–6) antes de generar nada:
 - Animaciones cortas (120–360ms), respeta `prefers-reduced-motion`. Sin bounces.
 - Diagramas de flujo: tarjetas conectadas + flechas, numeradas, breves.
 
+### Gráficos interactivos por concepto (obligatorio)
+- **Toda explicación de un concepto, flujo, transformación, comparación, decisión o arquitectura debe acompañarse de un gráfico interactivo.** No basta texto + diagrama estático.
+- Antes de redactar la sección, abre `documentation-widgets/README.md`, ubica el concepto en la **tabla de selección** y elige el patrón que mejor lo represente:
+  - Procesos lineales (3–6 pasos) → `01-flow-steps.html`
+  - Arquitectura con componentes → `02-hotspots-architecture.html`
+  - Máquinas de estado / ciclos de vida → `03-time-scrubber.html`
+  - Composición de middlewares / pipelines → `04-drag-pipeline.html`
+  - Reglas de negocio condicionales → `05-decision-tree.html`
+  - Stack por niveles → `06-toggle-layers.html`
+  - Migraciones / refactors → `07-before-after-slider.html`
+  - Glosarios / terminología → `08-term-matching.html`
+  - Configs / queries que se construyen → `09-json-editor.html`
+  - Comparación N×atributos → `10-comparison-table.html`
+  - Relaciones no lineales → `11-concept-map.html`
+  - Operaciones de conjuntos / SQL joins → `12-sql-joins.html`
+  - Tutoriales con validación → `13-wizard-steps.html`
+- Copia el bloque del patrón, **reemplaza únicamente el objeto `// === DATOS ===`** del `<script>` con los datos del concepto. No modifiques la lógica.
+- Si en una página coexisten dos widgets del mismo patrón, prefija los `id` con el slug del concepto (ej. `flow-imports-nc0`, `flow-exports-nc0`) para evitar colisiones.
+- Cuando el concepto no encaje exactamente en ningún patrón, prioriza adaptar el más cercano antes que inventar uno nuevo desde cero.
+
+### Bloques de consola (estilo mac-apple)
+- Toda sección que muestre comandos de terminal usa el bloque `.terminal` del ejemplo `examples/documentation-importacion-data.html`: cabecera oscura `.terminal__bar` con los tres puntos `.terminal__dots`, título en caps con tracking, y cuerpo `.terminal__body` en mono claro sobre fondo `#0F172A`.
+- Colorea cada token con la clase correspondiente: `.t-cmt` (comentarios), `.t-prompt` (`$`), `.t-cmd` (comando), `.t-arg` (argumentos), `.t-flag` (flags), `.t-ok` (resultado positivo). No usar HTML genérico (`<pre><code>`) cuando el contenido es una sesión de terminal.
+- Cuando convivan dos terminales (ej. worker + cliente), usa el grid `.terminal-pair` con `.terminal-col` para alinearlos lado a lado.
+- Para comandos numerados con explicación, usa `.cmd-stack` + `.cmd-item` (cabecera clara con número turquesa, cuerpo oscuro con el comando, footer claro con la nota).
+- Para queries SQL u otros snippets DSL con fondo oscuro, usa `.sql-box` con `.sql-box__bar` (etiqueta del motor/contexto) y `.sql-box__body` (tokens `.kw`, `.tbl`, `.val`, `.cm`).
+- Nunca renderices comandos en bloques claros con borde. La consola siempre va oscura, tipo macOS.
+
 ### Lo que NUNCA hacer
 - No usar emojis (Distill no los usa, Sódeker tampoco).
 - No usar degradados, fondos oscuros dominantes, sombras pesadas Material Design.
@@ -147,9 +178,27 @@ documentation-skill/
 │   │   └── components.html            ← snippets reutilizables
 │   └── markdown/
 │       └── shell.md                   ← estructura base markdown
+├── documentation-widgets/             ← catálogo de patrones interactivos
+│   ├── README.md                      ← tabla de selección + esquemas de datos
+│   └── patterns/
+│       ├── 01-flow-steps.html
+│       ├── 02-hotspots-architecture.html
+│       ├── 03-time-scrubber.html
+│       ├── 04-drag-pipeline.html
+│       ├── 05-decision-tree.html
+│       ├── 06-toggle-layers.html
+│       ├── 07-before-after-slider.html
+│       ├── 08-term-matching.html
+│       ├── 09-json-editor.html
+│       ├── 10-comparison-table.html
+│       ├── 11-concept-map.html
+│       ├── 12-sql-joins.html
+│       └── 13-wizard-steps.html
 ├── examples/
-│   ├── ejemplo-inventarios.html       ← output de referencia
-│   └── ejemplo-inventarios.md
+│   ├── ejemplo-inventarios.html               ← output de referencia general
+│   ├── ejemplo-inventarios.md
+│   └── documentation-importacion-data.html    ← referencia para terminales mac-apple,
+│                                                 .cmd-stack, .sql-box e .interactive-flow
 └── assets/
     └── interactive-hand.svg           ← badge mano turquesa
 ```

@@ -1,0 +1,109 @@
+<!--
+  Patrón 08 — Matching término-definición
+  Cuándo usar: glosarios, refuerzo de terminología, evaluación rápida.
+  Interacción: arrastrar cada definición al término que corresponde.
+-->
+<section class="section pattern-08" id="match-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Refuerzo</span>
+    <h2>Empareja <span class="accent">término</span> con definición</h2>
+    <p class="lede">Arrastra cada definición sobre el término correcto y verifica al final.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Arrastra las tarjetas de la zona inferior a su término correspondiente.
+  </p>
+
+  <div class="mt-grid" id="mt-grid"></div>
+  <div class="mt-pool">
+    <div class="mt-pool__label">Definiciones</div>
+    <div id="mt-pool" class="mt-pool__inner"></div>
+  </div>
+  <div class="mt-actions">
+    <button class="btn btn--primary" id="mt-check" type="button">Verificar</button>
+    <button class="btn btn--secondary" id="mt-reset" type="button">Reiniciar</button>
+    <span id="mt-status" class="mt-status"></span>
+  </div>
+</section>
+
+<style>
+  .pattern-08 .mt-grid{display:grid;grid-template-columns:160px 1fr;gap:8px;margin-bottom:14px;}
+  .pattern-08 .mt-term{padding:10px 12px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:8px;font-size:13px;font-weight:500;display:flex;align-items:center;color:var(--ink-700,#292524);}
+  .pattern-08 .mt-slot{min-height:54px;padding:8px;border:1.5px dashed var(--ink-300,#d3d1c7);border-radius:8px;transition:background .15s;display:flex;align-items:center;background:#fff;}
+  .pattern-08 .mt-slot.over{background:var(--info-soft,#E6F1FB);border-color:var(--info,#185FA5);}
+  .pattern-08 .mt-slot.ok{background:var(--success-soft,#E1F5EE);border-style:solid;border-color:var(--success,#0F6E56);}
+  .pattern-08 .mt-slot.bad{background:var(--danger-soft,#FCEBEB);border-style:solid;border-color:var(--danger,#A32D2D);}
+  .pattern-08 .mt-pool{padding:12px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;}
+  .pattern-08 .mt-pool__label{font-size:12px;font-weight:500;color:var(--ink-500,#78716c);margin-bottom:8px;}
+  .pattern-08 .mt-pool__inner{display:flex;flex-direction:column;gap:6px;min-height:30px;}
+  .pattern-08 .mt-def{padding:8px 12px;background:#fff;border:1px solid var(--ink-300,#d3d1c7);border-radius:8px;font-size:12px;line-height:1.5;cursor:grab;user-select:none;color:var(--ink-700,#292524);}
+  .pattern-08 .mt-actions{margin-top:12px;display:flex;gap:8px;align-items:center;}
+  .pattern-08 .mt-status{font-size:13px;color:var(--ink-500,#78716c);}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  const pares = [
+    { termino:'Migration',    definicion:'Archivo versionado que define cambios al esquema de la base de datos de forma reversible.' },
+    { termino:'Eloquent',     definicion:'ORM que mapea tablas a clases PHP y permite consultas fluidas sin SQL crudo.' },
+    { termino:'Seeder',       definicion:'Clase que inserta datos iniciales o de prueba en tablas existentes.' },
+    { termino:'Form Request', definicion:'Clase que encapsula reglas de validación reutilizables fuera del controlador.' },
+    { termino:'Middleware',   definicion:'Capa intermedia que intercepta la petición antes o después del controlador.' }
+  ];
+  // === LÓGICA ===
+  const grid = document.getElementById('mt-grid');
+  const pool = document.getElementById('mt-pool');
+  const status = document.getElementById('mt-status');
+  pares.forEach((p, i) => {
+    const t = document.createElement('div'); t.className = 'mt-term'; t.textContent = p.termino;
+    const s = document.createElement('div'); s.className = 'mt-slot'; s.dataset.idx = i;
+    grid.appendChild(t); grid.appendChild(s);
+  });
+  const shuffled = pares.map((_, i) => i).sort(() => Math.random() - 0.5);
+  shuffled.forEach(i => {
+    const d = document.createElement('div');
+    d.className = 'mt-def'; d.draggable = true; d.dataset.idx = i; d.textContent = pares[i].definicion;
+    d.id = 'def' + i + '_' + Math.random().toString(36).slice(2,7);
+    d.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', d.id); setTimeout(() => d.style.opacity = '.4', 0); });
+    d.addEventListener('dragend', () => d.style.opacity = '1');
+    pool.appendChild(d);
+  });
+  function makeDroppable(zone){
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('over');
+      const el = document.getElementById(e.dataTransfer.getData('text/plain'));
+      if (!el) return;
+      if (zone.classList.contains('mt-slot')) {
+        const existing = zone.querySelector('.mt-def');
+        if (existing) pool.appendChild(existing);
+      }
+      zone.appendChild(el);
+      zone.classList.remove('ok', 'bad');
+    });
+  }
+  document.querySelectorAll('.pattern-08 .mt-slot').forEach(makeDroppable);
+  makeDroppable(pool);
+  document.getElementById('mt-check').onclick = () => {
+    let ok = 0;
+    document.querySelectorAll('.pattern-08 .mt-slot').forEach(slot => {
+      const def = slot.querySelector('.mt-def');
+      slot.classList.remove('ok', 'bad');
+      if (!def) return;
+      const correct = def.dataset.idx === slot.dataset.idx;
+      slot.classList.add(correct ? 'ok' : 'bad');
+      if (correct) ok++;
+    });
+    status.textContent = `${ok} de ${pares.length} correctas`;
+    status.style.color = ok === pares.length ? 'var(--success,#0F6E56)' : 'var(--ink-500,#78716c)';
+  };
+  document.getElementById('mt-reset').onclick = () => {
+    document.querySelectorAll('.pattern-08 .mt-slot .mt-def').forEach(d => pool.appendChild(d));
+    document.querySelectorAll('.pattern-08 .mt-slot').forEach(s => s.classList.remove('ok', 'bad'));
+    status.textContent = '';
+  };
+})();
+</script>

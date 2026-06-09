@@ -1,0 +1,164 @@
+<!--
+  Patrón 13 — Wizard de pasos con validación
+  Cuándo usar: tutoriales de configuración inicial, onboarding técnico.
+  Interacción: completar cada paso, validar antes de avanzar, posibilidad de volver atrás.
+-->
+<section class="section pattern-13" id="wizard-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Configuración guiada</span>
+    <h2>Configuración <span class="accent">inicial</span></h2>
+    <p class="lede">Completa cada paso para configurar el módulo. La validación se ejecuta al pasar al siguiente.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Avanza paso a paso. Puedes volver atrás en cualquier momento.
+  </p>
+
+  <div class="wz-steps" id="wz-steps"></div>
+  <div class="wz-panel" id="wz-panel"></div>
+  <div class="wz-nav">
+    <button class="btn btn--secondary" id="wz-prev" type="button" disabled>← Anterior</button>
+    <span id="wz-progress"></span>
+    <button class="btn btn--primary" id="wz-next" type="button">Siguiente →</button>
+  </div>
+</section>
+
+<style>
+  .pattern-13 .wz-steps{display:flex;align-items:center;margin-bottom:20px;gap:0;}
+  .pattern-13 .wz-step{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;}
+  .pattern-13 .wz-step__dot{width:30px;height:30px;border-radius:50%;background:var(--ink-50,#f8f7f4);border:1.5px solid var(--ink-300,#d3d1c7);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--ink-500,#78716c);transition:all .2s;}
+  .pattern-13 .wz-step.done .wz-step__dot{background:var(--success-soft,#E1F5EE);border-color:var(--success,#0F6E56);color:var(--success-dark,#04342C);}
+  .pattern-13 .wz-step.active .wz-step__dot{background:var(--accent,#534AB7);border-color:var(--accent,#534AB7);color:#fff;}
+  .pattern-13 .wz-step__lbl{font-size:11px;color:var(--ink-500,#78716c);white-space:nowrap;}
+  .pattern-13 .wz-step.active .wz-step__lbl{color:var(--ink-700,#292524);font-weight:500;}
+  .pattern-13 .wz-line{flex:1;height:2px;background:var(--ink-200,#e4e2d8);margin:0 8px 22px;}
+  .pattern-13 .wz-line.done{background:var(--success,#0F6E56);}
+  .pattern-13 .wz-panel{padding:16px 18px;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;min-height:180px;}
+  .pattern-13 .wz-panel h3{font-size:15px;margin:0 0 4px;font-weight:500;color:var(--ink-700,#292524);}
+  .pattern-13 .wz-panel p.sub{font-size:13px;color:var(--ink-500,#78716c);margin:0 0 14px;line-height:1.5;}
+  .pattern-13 .wz-field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+  .pattern-13 .wz-field label{font-size:12px;color:var(--ink-500,#78716c);font-weight:500;}
+  .pattern-13 .wz-field input[type="text"],.pattern-13 .wz-field input[type="number"],.pattern-13 .wz-field select{padding:6px 10px;font-size:13px;border:1px solid var(--ink-300,#d3d1c7);border-radius:6px;background:#fff;font-family:inherit;color:var(--ink-700,#292524);}
+  .pattern-13 .wz-err{font-size:11px;color:var(--danger,#A32D2D);margin-top:2px;min-height:14px;}
+  .pattern-13 .wz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+  .pattern-13 #wz-progress{font-size:12px;color:var(--ink-500,#78716c);}
+  .pattern-13 .wz-summary{padding:12px;background:var(--success-soft,#E1F5EE);color:var(--success-dark,#04342C);border-radius:8px;font-size:13px;line-height:1.6;}
+  .pattern-13 .wz-summary strong{display:block;margin-bottom:6px;font-size:14px;}
+  .pattern-13 .wz-summary code{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#fff;padding:1px 5px;border-radius:3px;}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  // Cada paso define su propio render() y validate(). El validate devuelve un
+  // objeto { campo: 'mensaje de error' } o {} si todo está bien.
+  const pasos = [
+    {
+      titulo:'Proyecto',
+      descripcion:'Define los datos del proyecto que estás configurando.',
+      render:(s) => `
+        <div class="wz-field"><label>Nombre del módulo</label><input id="f-name" type="text" value="${s.name||''}" placeholder="ej. afianzadora-estudios"><div class="wz-err" id="e-name"></div></div>
+        <div class="wz-field"><label>Versión inicial</label><input id="f-ver" type="text" value="${s.ver||'1.0.0'}" placeholder="1.0.0"><div class="wz-err" id="e-ver"></div></div>`,
+      validate:(s) => {
+        const errs = {};
+        const name = document.getElementById('f-name').value.trim();
+        const ver = document.getElementById('f-ver').value.trim();
+        if (!name) errs.name = 'El nombre es obligatorio';
+        else if (!/^[a-z][a-z0-9-]+$/.test(name)) errs.name = 'Usa minúsculas, números y guiones';
+        if (!/^\d+\.\d+\.\d+$/.test(ver)) errs.ver = 'Formato semver: X.Y.Z';
+        s.name = name; s.ver = ver;
+        return errs;
+      }
+    },
+    {
+      titulo:'Base de datos',
+      descripcion:'Elige el motor y configura la conexión.',
+      render:(s) => `
+        <div class="wz-field"><label>Motor</label>
+          <select id="f-db">
+            <option value="pgsql"${s.db==='pgsql'?' selected':''}>PostgreSQL</option>
+            <option value="mysql"${s.db==='mysql'?' selected':''}>MySQL</option>
+            <option value="sqlite"${s.db==='sqlite'?' selected':''}>SQLite</option>
+          </select></div>
+        <div class="wz-field"><label>Host</label><input id="f-host" type="text" value="${s.host||'127.0.0.1'}"><div class="wz-err" id="e-host"></div></div>
+        <div class="wz-field"><label>Puerto</label><input id="f-port" type="number" value="${s.port||5432}" style="width:120px;"><div class="wz-err" id="e-port"></div></div>`,
+      validate:(s) => {
+        const errs = {};
+        const host = document.getElementById('f-host').value.trim();
+        const port = parseInt(document.getElementById('f-port').value);
+        if (!host) errs.host = 'El host es obligatorio';
+        if (isNaN(port) || port < 1 || port > 65535) errs.port = 'Puerto entre 1 y 65535';
+        s.db = document.getElementById('f-db').value; s.host = host; s.port = port;
+        return errs;
+      }
+    },
+    {
+      titulo:'Permisos',
+      descripcion:'Define qué roles pueden acceder a este módulo.',
+      render:(s) => {
+        const roles = ['Admin', 'Analista', 'Auditor', 'Lector'];
+        s.roles = s.roles || ['Admin', 'Analista'];
+        return roles.map(r => `<label class="wz-field" style="flex-direction:row;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" data-role="${r}" ${s.roles.includes(r)?'checked':''}><span style="font-size:13px;">${r}</span></label>`).join('') +
+          `<div class="wz-err" id="e-roles"></div>`;
+      },
+      validate:(s) => {
+        const errs = {};
+        s.roles = [...document.querySelectorAll('.pattern-13 input[data-role]:checked')].map(c => c.dataset.role);
+        if (!s.roles.length) errs.roles = 'Selecciona al menos un rol';
+        return errs;
+      }
+    },
+    {
+      titulo:'Resumen',
+      descripcion:'Revisa la configuración antes de confirmar.',
+      render:(s) => `<div class="wz-summary"><strong>Listo para crear</strong>
+        Módulo <code>${s.name}</code> v<code>${s.ver}</code><br>
+        Motor: <code>${s.db}</code> en <code>${s.host}:${s.port}</code><br>
+        Roles autorizados: ${s.roles.map(r => `<code>${r}</code>`).join(' ')}</div>`,
+      validate:() => ({})
+    }
+  ];
+  // === LÓGICA ===
+  const state = {};
+  let cur = 0;
+  const stepsEl = document.getElementById('wz-steps');
+  const panel = document.getElementById('wz-panel');
+  const prog = document.getElementById('wz-progress');
+  const prev = document.getElementById('wz-prev');
+  const next = document.getElementById('wz-next');
+  function renderSteps(){
+    let html = '';
+    pasos.forEach((s, i) => {
+      const cls = i < cur ? 'done' : i === cur ? 'active' : '';
+      html += `<div class="wz-step ${cls}"><div class="wz-step__dot">${i < cur ? '✓' : i + 1}</div><div class="wz-step__lbl">${s.titulo}</div></div>`;
+      if (i < pasos.length - 1) html += `<div class="wz-line ${i < cur ? 'done' : ''}"></div>`;
+    });
+    stepsEl.innerHTML = html;
+  }
+  function renderPanel(){
+    const s = pasos[cur];
+    panel.innerHTML = `<h3>Paso ${cur + 1}: ${s.titulo}</h3><p class="sub">${s.descripcion}</p>${s.render(state)}`;
+    prev.disabled = cur === 0;
+    next.textContent = cur === pasos.length - 1 ? 'Confirmar ✓' : 'Siguiente →';
+    prog.textContent = `${cur + 1} de ${pasos.length}`;
+  }
+  function showErrors(errs){
+    Object.keys(errs).forEach(k => {
+      const el = document.getElementById('e-' + k);
+      if (el) el.textContent = errs[k];
+    });
+  }
+  next.onclick = () => {
+    const errs = pasos[cur].validate(state);
+    if (Object.keys(errs).length) { showErrors(errs); return; }
+    if (cur < pasos.length - 1) { cur++; renderSteps(); renderPanel(); }
+    else {
+      panel.innerHTML = '<div class="wz-summary" style="text-align:center;padding:24px;"><strong>✓ Configuración aplicada</strong>El módulo quedó registrado correctamente.</div>';
+      prev.disabled = true; next.disabled = true;
+    }
+  };
+  prev.onclick = () => { if (cur > 0) { cur--; renderSteps(); renderPanel(); } };
+  renderSteps(); renderPanel();
+})();
+</script>

@@ -1,0 +1,132 @@
+<!--
+  Patrón 05 — Árbol de decisión
+  Cuándo usar: reglas de negocio con condiciones encadenadas.
+  Interacción: clic en cada nodo para recorrer ramas hasta una hoja.
+-->
+<section class="section pattern-05" id="decision-PLACEHOLDER">
+  <header class="section__header">
+    <span class="badge">Lógica de decisión</span>
+    <h2>Criterios de <span class="accent">aprobación</span></h2>
+    <p class="lede">Recorre el árbol haciendo clic en cada condición para entender cómo se decide.</p>
+  </header>
+
+  <p style="font-size: var(--fs-small, 13px); color: var(--ink-500, #78716c);">
+    <span class="interactive-badge" aria-label="Interactivo">↺</span>
+    Haz clic en cada nodo para seguir el flujo de decisión.
+    <button class="btn btn--secondary" id="dt-reset" type="button" style="font-size:12px;padding:4px 10px;margin-left:10px;">Reiniciar</button>
+  </p>
+
+  <svg class="dt-svg" id="dt-svg" viewBox="0 0 640 360"></svg>
+  <div class="dt-result idle" id="dt-result">
+    <p class="dt-result__title" id="dt-rt">Comienza por la pregunta raíz</p>
+    <p class="dt-result__desc" id="dt-rd">Haz clic en cada condición siguiendo el flujo. Las ramas no elegidas se atenuarán.</p>
+  </div>
+</section>
+
+<style>
+  .pattern-05 .dt-svg{width:100%;background:var(--ink-50,#f8f7f4);border:1px solid var(--ink-200,#e4e2d8);border-radius:12px;}
+  .pattern-05 .dt-node{cursor:pointer;transition:opacity .15s;}
+  .pattern-05 .dt-node:hover{opacity:.85;}
+  .pattern-05 .dt-node.dim{opacity:.3;cursor:default;}
+  .pattern-05 .dt-edge{stroke:var(--ink-300,#d3d1c7);stroke-width:2;fill:none;transition:stroke .2s;}
+  .pattern-05 .dt-edge.lit{stroke:var(--accent,#534AB7);stroke-width:3;}
+  .pattern-05 .dt-edge.dim{opacity:.3;}
+  .pattern-05 .dt-result{margin-top:14px;padding:14px 16px;border-radius:12px;min-height:60px;border:1px solid transparent;}
+  .pattern-05 .dt-result.ok{background:var(--success-soft,#E1F5EE);color:var(--success-dark,#04342C);border-color:var(--success,#0F6E56);}
+  .pattern-05 .dt-result.no{background:var(--danger-soft,#FCEBEB);color:var(--danger-dark,#501313);border-color:var(--danger,#A32D2D);}
+  .pattern-05 .dt-result.warn{background:var(--warning-soft,#FAEEDA);color:var(--warning-dark,#412402);border-color:var(--warning,#854F0B);}
+  .pattern-05 .dt-result.idle{background:var(--ink-50,#f8f7f4);color:var(--ink-500,#78716c);border-color:var(--ink-200,#e4e2d8);}
+  .pattern-05 .dt-result__title{font-size:14px;font-weight:500;margin:0 0 4px;}
+  .pattern-05 .dt-result__desc{font-size:13px;margin:0;line-height:1.6;opacity:.85;}
+</style>
+
+<script>
+(function(){
+  // === DATOS ===
+  // Estructura: nodos internos tienen "pregunta"; hojas tienen "resultado" y "tipo".
+  // Cada nodo (excepto raíz) declara su "padre" y la "rama" (yes/no) por la que se llega.
+  const tree = {
+    nodos: [
+      { id:'root',   pregunta:'¿Ingresos > 3× canon?',  x:240, y:20,  w:160, h:50 },
+      { id:'score',  pregunta:'¿Score crediticio?',     x:100, y:140, w:160, h:50, padre:'root',   rama:'yes', etiqueta:'sí' },
+      { id:'reject', pregunta:'¿Aporta codeudor?',      x:380, y:140, w:160, h:50, padre:'root',   rama:'no',  etiqueta:'no' }
+    ],
+    hojas: [
+      { id:'approve', resultado:'Aprobar',          tipo:'ok',   x:20,  y:260, w:120, h:50, padre:'score',  rama:'yes', etiqueta:'≥ 700',
+        descripcion:'Cumple los criterios mínimos. Pasa al desembolso sin intervención manual.' },
+      { id:'manual',  resultado:'Revisión manual',  tipo:'warn', x:200, y:260, w:160, h:50, padre:'score',  rama:'no',  etiqueta:'< 700',
+        descripcion:'Un analista revisa documentación adicional antes de decidir.' },
+      { id:'cosig',   resultado:'Revisión manual',  tipo:'warn', x:320, y:260, w:160, h:50, padre:'reject', rama:'yes', etiqueta:'sí',
+        descripcion:'El codeudor cubre el riesgo. Se revisa su perfil antes de aprobar.' },
+      { id:'deny',    resultado:'Rechazar',         tipo:'no',   x:500, y:260, w:120, h:50, padre:'reject', rama:'no',  etiqueta:'no',
+        descripcion:'No cumple criterios mínimos ni aporta garantías. Se notifica al cliente.' }
+    ]
+  };
+  // === LÓGICA ===
+  const palette = {
+    internal: { f:'var(--accent-soft,#EEEDFE)', s:'var(--accent,#534AB7)', t:'var(--accent-dark,#3C3489)' },
+    ok:       { f:'var(--success-soft,#E1F5EE)', s:'var(--success,#0F6E56)', t:'var(--success-dark,#04342C)' },
+    warn:     { f:'var(--warning-soft,#FAEEDA)', s:'var(--warning,#854F0B)', t:'var(--warning-dark,#412402)' },
+    no:       { f:'var(--danger-soft,#FCEBEB)',  s:'var(--danger,#A32D2D)',  t:'var(--danger-dark,#501313)' }
+  };
+  const svg = document.getElementById('dt-svg');
+  const all = [...tree.nodos, ...tree.hojas];
+  const byId = id => all.find(n => n.id === id);
+  let html = '';
+  // edges
+  all.forEach(n => {
+    if (!n.padre) return;
+    const p = byId(n.padre);
+    const x1 = p.x + p.w/2, y1 = p.y + p.h;
+    const x2 = n.x + n.w/2, y2 = n.y;
+    html += `<path class="dt-edge" data-edge="${n.padre}-${n.rama}" d="M ${x1} ${y1} L ${x2} ${y2}"/>`;
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    html += `<text x="${mx + 8}" y="${my}" font-size="10" fill="var(--ink-500,#78716c)">${n.etiqueta}</text>`;
+  });
+  // nodes
+  all.forEach(n => {
+    const p = n.tipo ? palette[n.tipo] : palette.internal;
+    const label = n.pregunta || n.resultado;
+    html += `<g class="dt-node" data-id="${n.id}" data-leaf="${n.tipo || ''}">
+      <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="8" fill="${p.f}" stroke="${p.s}" stroke-width="1.5"/>
+      <text x="${n.x + n.w/2}" y="${n.y + n.h/2 + 5}" text-anchor="middle" font-size="13" font-weight="500" fill="${p.t}">${label}</text>
+    </g>`;
+  });
+  svg.innerHTML = html;
+  const path = ['root'];
+  const result = document.getElementById('dt-result');
+  const rt = document.getElementById('dt-rt');
+  const rd = document.getElementById('dt-rd');
+  function reset(){
+    svg.querySelectorAll('.dt-node').forEach(n => n.classList.remove('dim'));
+    svg.querySelectorAll('.dt-edge').forEach(e => e.classList.remove('lit', 'dim'));
+    path.length = 0; path.push('root');
+    result.className = 'dt-result idle';
+    rt.textContent = 'Comienza por la pregunta raíz';
+    rd.textContent = 'Haz clic en cada condición siguiendo el flujo. Las ramas no elegidas se atenuarán.';
+  }
+  svg.querySelectorAll('.dt-node').forEach(g => {
+    g.addEventListener('click', () => {
+      if (g.classList.contains('dim')) return;
+      const node = byId(g.dataset.id);
+      if (!node.padre) return;
+      if (!path.includes(node.padre)) return;
+      const otherRama = node.rama === 'yes' ? 'no' : 'yes';
+      svg.querySelector(`[data-edge="${node.padre}-${node.rama}"]`).classList.add('lit');
+      const other = svg.querySelector(`[data-edge="${node.padre}-${otherRama}"]`);
+      if (other) other.classList.add('dim');
+      all.filter(x => x.padre === node.padre && x.id !== node.id).forEach(s => {
+        const el = svg.querySelector(`[data-id="${s.id}"]`);
+        if (el) el.classList.add('dim');
+      });
+      path.push(node.id);
+      if (node.tipo) {
+        result.className = 'dt-result ' + node.tipo;
+        rt.textContent = node.resultado;
+        rd.textContent = node.descripcion;
+      }
+    });
+  });
+  document.getElementById('dt-reset').onclick = reset;
+})();
+</script>
